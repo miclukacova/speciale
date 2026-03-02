@@ -12,7 +12,7 @@ library(MASS)
 # Calculating stability as a function of m
 
 d <- 40
-N <- 500
+N <- 1000
 X <- matrix(nrow = N, ncol = d)
 Y <- c()
 emp.est.knn <- c()
