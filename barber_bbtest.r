@@ -84,7 +84,7 @@ rej_prob[which.max(taus[taus <= 1])]
 
 set.seed(6389)
 
-taus <- seq(0.3,1, by = 0.05)
+taus <- seq(0.3,1, by = 0.01)
 B <- 10000
 N <- 5000                         # Data size
 n <- 500                          # Evaluation size
@@ -159,9 +159,11 @@ for(i in 1:10^4){
 }
 
 g <- function(tau) {
-  bound <- 0.05 * (1 + ((981/1000*tau) - mean(riskss))/(1-(981/1000*tau)))^(N/n)
+  tau_tilde <- (1+((1/0.05)-1)/N)*tau
+  bound <- 0.05 * (1 + (tau_tilde - mean(riskss))/(1-tau_tilde))^(N/n)
   return(min(bound, 1))
 }
+
 
 vg <- Vectorize(g)
 vg(taus)
@@ -172,3 +174,8 @@ ggplot(data.frame(taus, rej_prob))+
   theme_bw()+
   labs(x = "tau", y = "Rejection Probability")+
   geom_vline(xintercept = mean(riskss), color = "red", linetype = 2)
+
+
+
+
+
