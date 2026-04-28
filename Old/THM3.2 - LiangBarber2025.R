@@ -1,10 +1,10 @@
 # Packages
 
 library(ggplot2)
-#install.packages("FNN")                                                        #knn
+#install.packages("FNN")                                                        # knn
 library(FNN)
 
-#install.packages("MASS")                                                        # ridge
+#install.packages("MASS")                                                       # ridge
 library(MASS)
 
 # Reproducing Liang and Barber 2025: Illustrating the bound from THM 3.2
