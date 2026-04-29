@@ -18,10 +18,12 @@ get_rina_bb_test_plot <- function(data, B = 10^4, N = 3000, n = 500){
 
   vg <- Vectorize(g)
 
-  ggplot(data)+
+  plot <- ggplot(data)+
     geom_point(aes(x=tau, y = rej_prob), size = 2)+
     geom_function(fun = vg, color = "steelblue", size = 2)+
     theme_bw()+
     labs(x = "tau", y = "Rejection Probability")+
     geom_vline(xintercept = mean(riskss), color = "red", linetype = 2)
+
+  return(plot)
 }

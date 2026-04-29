@@ -10,7 +10,7 @@ get_OLS_rej_prob_plot <- function(data1, data2, tau = 0.5, alpha = 0.05, N = 300
   high_idx <- which(abs(gammas2 - gamma_range[2]) < 10^(-5))
   risk_gamma <- data2[[2]]$risk[low_idx: high_idx]
 
-  if(alpha < (1-tau)^(floor(1000/(n+1)))) {
+  if(alpha < (1 - tau)^(floor(N / (n + 1)))) {
     print("BB test power can be calculated - bound is exact")
     # calculating bb box power
     bound <- alpha * (1 + (tau - risk_gamma)/(1-tau))^(floor(N/(n+1)))

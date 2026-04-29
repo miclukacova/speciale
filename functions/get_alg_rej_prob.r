@@ -8,7 +8,7 @@ get_alg_rej_prob <- function(alpha = 0.05, gammas = seq(0.6,0.9, by = 0.05),
   test_res <- c()
 
   for(gamma in gammas){
-    k_star <- 0
+    k_star <- -1
     a_star <- -1
     while(a_star < 0 | a_star > 1){
       k_star <- k_star + 1
