@@ -1,4 +1,4 @@
-get_cv_test_data <- function(taus = seq(0.85,1.2, by = 0.005), B = 10^4, N = 500, K = 0.5) {
+get_cv_test_data <- function(taus = seq(0.85,1.2, by = 0.005), B = 10^4, N = 500, K = 5, loss, alg = lm_alg) {
   #-------------------------------------------------------------------------------
   ### Rina Barber paper - LM example
   #-------------------------------------------------------------------------------
@@ -9,6 +9,13 @@ get_cv_test_data <- function(taus = seq(0.85,1.2, by = 0.005), B = 10^4, N = 500
   rej_prob <- c()
   i <- 1
   test_res <- c()
+
+  # Estimator of risk
+  risk_est <- function(f_hat, X, Y) {
+    Y_hat <- f_hat(X)
+    1/(N/K) * sum(loss(Y_hat, Y))
+    mean(loss(Y_hat, Y))
+  }
 
   for(tau in taus){
     for(b in 1:B){
@@ -29,7 +36,7 @@ get_cv_test_data <- function(taus = seq(0.85,1.2, by = 0.005), B = 10^4, N = 500
       hat_f_k <- list()
       for(k in 1:K){
         indices <- ((k -1) * N/K + 1):(k * N/K)
-        hat_f_k[[k]] <- lm_alg(X[-indices,], Y[-indices])
+        hat_f_k[[k]] <- alg(X[-indices,], Y[-indices])
       }
 
       risk_CV <- c()
@@ -43,6 +50,7 @@ get_cv_test_data <- function(taus = seq(0.85,1.2, by = 0.005), B = 10^4, N = 500
 
     rej_prob[i] <- mean(test_res)
     i <- i+1
+    print(i)
   }
 
   return(data.frame(taus = taus, rej_prob = rej_prob))

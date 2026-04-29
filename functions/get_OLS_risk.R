@@ -13,7 +13,7 @@ get_OLS_risk <- function(tau = 0.5, B = 10^4, N = 1000, n = 500) {
       X2 <- rnorm(N+1,-1,1)
       X <- cbind(X1[1:N],X2[1:N])
 
-      riskss[i] <- 2* pnorm(-0.5, 0, t(X[n+1,])%*%solve(t(X)%*% X)%*% X[n+1,] +vars[j])
+      riskss[i] <- 2* pnorm(-0.5, 0, t(X[n+1,]) %*% solve(t(X) %*% X) %*% X[n+1,] + vars[j])
     }
     risk_est[j] <- mean(riskss)
   }
