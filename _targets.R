@@ -13,18 +13,18 @@ tar_source("functions")
 list(
   tar_target(
     name = OLS_risk,
-    command = get_OLS_risk(tau = 0.5, B = 2*10^4, N = 3000, n = 500)),
+    command = get_OLS_risk(tau = 0.5, B = 2*10^4, N = 2500, n = 500)),
   tar_target(
     name = OLS_plot_risk,
     command = get_OLS_plot_risk(OLS_risk, tau = 0.5)),
   tar_target(
     name = alg_rej_prob,
     command = get_alg_rej_prob(alpha = 0.05, gammas = seq(0.6, 0.8, by = 0.02),
-                               tau = 0.5, B = 3*10^4, N = 3000, n = 500,
+                               tau = 0.5, B = 3*10^4, N = 2500, n = 500,
                                loss = loss_bin, alg = lm_alg)),
   tar_target(
     name = alg_rej_prob_plot,
-    command = get_OLS_rej_prob_plot(data1 = alg_rej_prob, data2 = OLS_risk)),
+    command = get_OLS_rej_prob_plot(data1 = alg_rej_prob, data2 = OLS_risk, tau = 0.5, alpha = 0.05, N = 2500, n = 500)),
   tar_target(
     name = l_q_stability_data,
     command = get_l_q_stability_data(B = 500, q = 2, alg = lm_alg, loss = loss_sq_error)),

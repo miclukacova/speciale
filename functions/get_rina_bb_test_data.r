@@ -12,11 +12,11 @@ get_rina_bb_test_data <- function(alpha = 0.05, taus = seq(0.3,1, by = 0.01),
   test_res <- c()
 
   for(tau in taus){
-    k_star <- 0
+    k_star <- -1
     a_star <- -1
     while(a_star < 0 | a_star > 1){
-      a_star <- (alpha - pbinom(k_star -1, floor(N/(n+1)), prob = tau)) / dbinom(k_star, floor(N/(n+1)), prob = tau)
       k_star <- k_star + 1
+      a_star <- (alpha - pbinom(k_star -1, floor(N/(n+1)), prob = tau)) / dbinom(k_star, floor(N/(n+1)), prob = tau)
       if(k_star > 100) stop("No solution")
     }
 

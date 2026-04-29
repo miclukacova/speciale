@@ -1,4 +1,4 @@
-get_OLS_rej_prob_plot <- function(data1, data2, tau = 0.5, alpha = 0.05, N = 3000, n = 500) {
+get_OLS_rej_prob_plot <- function(data1, data2, tau = 0.5, alpha = 0.05, N = 2500, n = 500) {
 
   gammas <- data1$gamma
   rej_prob <- data1$rej_prob
@@ -30,7 +30,7 @@ get_OLS_rej_prob_plot <- function(data1, data2, tau = 0.5, alpha = 0.05, N = 300
 
   plot <- ggplot() +
     geom_line(aes(x = gammas, y = rej_prob, color = "Rejection probability")) +
-    geom_line(aes(x = gammas2[56:86], y = bound, color = "Bound"), linetype = 2) +
+    geom_line(aes(x = gammas2[low_idx: high_idx], y = bound, color = "Bound"), linetype = 2) +
     geom_line(aes(x = gammas, y = bound2, color = "Bound TV"), linetype = 2) +
     geom_vline(aes(xintercept = gamma_star, color = "gamma*"), linetype = 3) +
     theme_bw() +

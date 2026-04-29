@@ -9,13 +9,13 @@ cv_test_plot|stem|158ce0c5a794d438|69971204555d5e0d|8ce7899bf02cf48a|-2040851102
 cv_test_data|stem|9f2cc7ec021993a3|696169e2c9afb255|aed42740308ab1e9|710838176||t20571.5603018555s|s415b|415|rds|local|vector|||216.25||
 OLS_rej_prob|stem|b86cae043bb67f0b|c504deefd1f30c92|a34e1d1227c16630|-1789343272||t20571.5606308775s|s202b|202|rds|local|vector|||28.392||
 l_q_stability_data|stem|92dc361c111abfa6|c64dbceaac3fe415|d76b2e56600673da|-1088987312||t20571.5610973537s|s294b|294|rds|local|vector|||40.278||
-rina_bb_test_data|stem|4412436972fb8001|f97c0778891bb3ed|f59d29ae7c0d01b9|-1592136759||t20571.5726569151s|s905b|905|rds|local|vector|||673.923||
 l_q_stability_plot|stem|1b69d2c36264ea64|ab1ad59f2d4f6990|1a9ae11cf69acc6f|-1798115336||t20571.5726592155s|s358580b|358580|rds|local|vector|||0.081|Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0. ℹ Please use `linewidth` instead.|
 OLS_rej_prob_plot|stem|914f5d9d3fcb8612|6c8bf418aff68cdb|c111094192168715|-1523704834||t20571.5726632194s|s396010b|396010|rds|local|vector|||0.067||
-alg_rej_prob|stem|ca70dd1951679c05|06020bd2bc8c87d6|a34e1d1227c16630|-811156895||t20572.241338771s|s302b|302|rds|local|vector|||185.362||
-OLS_risk|stem|4df9ffca9a9e64ee|580f2968003e758b|879f567005903484|1455208287||t20572.2886422206s|s1018b|1018|rds|local|vector|||3626.285||
-OLS_plot_risk|stem|55d548cd500f1504|713284a4db414e2c|fb89294bc056af2e|-420499704||t20572.2886444054s|s424369b|424369|rds|local|vector|||0.038||
-alg_rej_prob_plot|stem|e94e1d6a700bf48e|22d8f7b50e68d5c8|1197a5c47dfb9e91|-1658757658||t20572.2886465715s|s395374b|395374|rds|local|vector|||0.052||
+rina_bb_test_data|stem|4412436972fb8001|f97c0778891bb3ed|1a67031d3c4f386d|-1592136759||t20572.3390265046s|s905b|905|rds|local|vector|||1127.955||
+rina_bb_test_plot|stem|d08fa105ed1a8c2e|d0b47dee1c3bec73|a10d3468b1af2d25|852458870||t20572.3390545947s|s506450b|506450|rds|local|vector|||2.291|Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0. ℹ Please use `linewidth` instead.|
+OLS_risk|stem|1db5b9c57bd9af9b|ec70ccabad2b2efe|879f567005903484|1455208287||t20572.4683614351s|s1018b|1018|rds|local|vector|||258.419||
+alg_rej_prob|stem|6ab20120e1151088|e1da5c3545654ca8|10ba657ce4113187|-811156895||t20572.4701752752s|s302b|302|rds|local|vector|||156.688||
+OLS_plot_risk|stem|a64f2bb0f0f881a0|713284a4db414e2c|76d82a00e79953c6|-420499704||t20572.470177953s|s424380b|424380|rds|local|vector|||0.07||
 get_cv_test_plot|function|6289360e8d05f833
 beta|object|0f9a722c61834b89
 get_rina_bb_test_plot|function|a017d878028bb0f0
@@ -23,25 +23,11 @@ loss_sq_error|function|1fa4b90194237e90
 lm_alg|function|aefb2d116f064aa4
 get_l_q_stability_plot|function|6e4e78a00f398d5d
 loss_bin|function|42bfb90a330e9b16
-get_OLS_rej_prob_plot|function|18e20c13bcbe0aba
+get_OLS_rej_prob_plot|function|6339d6ed8d5a1ae0
 get_OLS_risk|function|188431804916328d
 get_OLS_plot_risk|function|8adfae8368185c2a
-get_rina_bb_test_data|function|79b5e5bd46034622
-get_alg_rej_prob|function|0f7daa7d8904160c
+get_rina_bb_test_data|function|3482d8dae331ae1f
+get_alg_rej_prob|function|4179f188eecd289c
 get_l_q_stability_data|function|cf25356c1a725542
 get_cv_test_data|function|eb2bc5aa504993b3
-rina_bb_test_plot|stem|d08fa105ed1a8c2e|d0b47dee1c3bec73|a10d3468b1af2d25|852458870||t20572.2963182942s|s506450b|506450|rds|local|vector|||2.327|Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0. ℹ Please use `linewidth` instead.|
-get_cv_test_plot|function|6289360e8d05f833
-beta|object|0f9a722c61834b89
-get_rina_bb_test_plot|function|a017d878028bb0f0
-loss_sq_error|function|1fa4b90194237e90
-lm_alg|function|aefb2d116f064aa4
-get_l_q_stability_plot|function|6e4e78a00f398d5d
-loss_bin|function|42bfb90a330e9b16
-get_OLS_rej_prob_plot|function|18e20c13bcbe0aba
-get_OLS_risk|function|188431804916328d
-get_OLS_plot_risk|function|8adfae8368185c2a
-get_rina_bb_test_data|function|77457c14919281cf
-get_alg_rej_prob|function|0f7daa7d8904160c
-get_l_q_stability_data|function|cf25356c1a725542
-get_cv_test_data|function|eb2bc5aa504993b3
+alg_rej_prob_plot|stem|b32af21012ecbf74|dba7f96588c3139f|da9c4e7b9ecc19cc|-1658757658||t20572.4764037663s|s395079b|395079|rds|local|vector|||0.07||
