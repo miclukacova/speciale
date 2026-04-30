@@ -19,8 +19,8 @@ get_OLS_rej_prob_plot <- function(data1, data2, tau = 0.5, alpha = 0.05, N = 250
   else{
     # calculating Rinas bound
     tau_tilde <- (1+((1/alpha)-1)/N)*tau
-    bound <- alpha * (1 + (tau_tilde - risk_gamma)/(1-tau_tilde))^(N/n)
-    bound <- pmin(bound, 1)
+    bound3 <- alpha * (1 + (tau_tilde - risk_gamma)/(1-tau_tilde))^(N/n)
+    bound3 <- pmin(bound3, 1)
     print("Calculating the bound from Rina Thm")
   }
 
@@ -31,6 +31,7 @@ get_OLS_rej_prob_plot <- function(data1, data2, tau = 0.5, alpha = 0.05, N = 250
   plot <- ggplot() +
     geom_line(aes(x = gammas, y = rej_prob, color = "Rejection probability")) +
     geom_line(aes(x = gammas2[low_idx: high_idx], y = bound, color = "Bound"), linetype = 2) +
+    geom_line(aes(x = gammas2[low_idx: high_idx], y = bound3, color = "Bound2"), linetype = 2) +
     geom_line(aes(x = gammas, y = bound2, color = "Bound TV"), linetype = 2) +
     geom_vline(aes(xintercept = gamma_star, color = "gamma*"), linetype = 3) +
     theme_bw() +

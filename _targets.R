@@ -40,9 +40,9 @@ list(
     command = get_cv_test_plot(cv_test_data)),
   tar_target(
     name = rina_bb_test_data,
-    command = get_rina_bb_test_data(alpha = 0.05, taus = seq(0.3,1, by = 0.01), B = 10^4, N = 5000,
+    command = get_rina_bb_test_data(alpha = 0.05, taus = seq(0.3,1, by = 0.01), B = 10^4, N = 2500,
                                     n = 500, loss = loss_bin, alg = lm_alg)),
   tar_target(
     name = rina_bb_test_plot,
-    command = get_rina_bb_test_plot(rina_bb_test_data, B = 10^4, N = 3000, n = 500))
+    command = get_rina_bb_test_plot(rina_bb_test_data, B = 10^4, N = 2500, n = 500))
 )
