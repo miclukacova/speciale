@@ -29,15 +29,22 @@ get_OLS_rej_prob_plot <- function(data1, data2, tau = 0.5, alpha = 0.05, N = 300
   bound2 <- alpha + sqrt(1 - sqrt(2*gamma_star*gammas/(gamma_star^2+gammas^2)))*sqrt(2)
 
   plot <- ggplot() +
-    geom_line(aes(x = gammas, y = rej_prob, color = "Rejection probability")) +
-    geom_line(aes(x = gammas2[56:86], y = bound, color = "Bound"), linetype = 2) +
-    geom_line(aes(x = gammas, y = bound2, color = "Bound TV"), linetype = 2) +
-    geom_vline(aes(xintercept = gamma_star, color = "gamma*"), linetype = 3) +
+    geom_line(aes(x = gammas, y = rej_prob, color = "Rejection probability"), size = 0.9) +
+    geom_line(aes(x = gammas2[56:86], y = bound, color = "Bound"), linetype = 2, size = 0.9) +
+    geom_line(aes(x = gammas, y = bound2, color = "Bound TV"), linetype = 2, size = 0.9) +
+    geom_vline(aes(xintercept = gamma_star), linetype = 3, size = 1, color = "black") +
+    annotate(
+      "text", label = expression(gamma^"*"),
+      x = 0.743, y = 0.15, size = 5, colour = "black"
+    )+
+    xlim(c(0.6,0.76)) +
     theme_bw() +
-    labs(x = expression(gamma),y = "Rejection Probability", color = NULL) +
+    labs(x = expression(gamma),y = "Rejection Rate", color = NULL) +
     scale_color_manual(
-      values = c("Rejection probability" = "darkred","Bound" = "blue","gamma*" = "black", "Bound TV" = "darkgreen"),
-      labels = c("Bound", expression(gamma^"*"), "Rejection probability", "Bound TV"))
+      values = c("Rejection probability" = "darkred","Bound" = "steelblue", "Bound TV" = "darkgreen"),
+      labels = c( "Bound", "Bound TV", "Rejection Rate"))
+
+  ggsave(here::here("plots/OLS_risk_plot.pdf"), plot = plot)
 
   return(plot)
 }
