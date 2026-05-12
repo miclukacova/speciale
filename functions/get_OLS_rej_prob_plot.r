@@ -44,7 +44,7 @@ get_OLS_rej_prob_plot <- function(data1, data2, tau = 0.5, alpha = 0.05, N = 300
       values = c("Rejection probability" = "darkred","Bound" = "steelblue", "Bound TV" = "darkgreen"),
       labels = c( "Bound", "Bound TV", "Rejection Rate"))
 
-  ggsave(here::here("plots/OLS_risk_plot.pdf"), plot = plot)
+  #ggsave(here::here("plots/OLS_risk_plot.pdf"), plot = plot)
 
   return(plot)
 }

@@ -21,7 +21,7 @@ get_OLS_plot_risk <- function(OLS_risk, tau = 0.5){
     scale_x_continuous(trans='log10')+
     theme(text = element_text(family = "TT Times New Roman"))
 
-  ggsave(here::here("plots/OLS_risk_plot.pdf"), plot = plot)
+  #ggsave(here::here("plots/OLS_risk_plot.pdf"), plot = plot)
 
   return(plot)
 }
