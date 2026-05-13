@@ -49,15 +49,15 @@ list(
 
 tar_target(
   name = e_vs_p_power_data,
-  command = get_e_vs_p_power(alphas = c(0.001, 0.01, 0.05),
-                             Bs = c(1000, 5000, 10000),
+  command = get_e_vs_p_power(alphas = c(0.001, 0.01, 0.05, 0.08),
                              ns = seq(50, 250, by = 50),
-                             ps = seq(0.1, 0.9, by = 0.1),
+                             ps = seq(0.1, 0.9, by = 0.05),
                              n = 100,
                              B = 5000,
                              alpha = 0.05,
                              p = 0.7,
-                             lambda = 0.5))
+                             lambda = 0.5),
+                             sampl_fct = sample_binom)
 
 tar_target(
   name = e_vs_p_power_plot,
