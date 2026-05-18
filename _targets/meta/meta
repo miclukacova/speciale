@@ -9,25 +9,25 @@ cv_test_plot|stem|158ce0c5a794d438|69971204555d5e0d|8ce7899bf02cf48a|-2040851102
 cv_test_data|stem|9f2cc7ec021993a3|696169e2c9afb255|aed42740308ab1e9|710838176||t20571.5603018555s|s415b|415|rds|local|vector|||216.25||
 OLS_rej_prob|stem|b86cae043bb67f0b|c504deefd1f30c92|a34e1d1227c16630|-1789343272||t20571.5606308775s|s202b|202|rds|local|vector|||28.392||
 l_q_stability_data|stem|92dc361c111abfa6|c64dbceaac3fe415|d76b2e56600673da|-1088987312||t20571.5610973537s|s294b|294|rds|local|vector|||40.278||
-l_q_stability_plot|stem|1b69d2c36264ea64|ab1ad59f2d4f6990|1a9ae11cf69acc6f|-1798115336||t20571.5726592155s|s358580b|358580|rds|local|vector|||0.081|Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0. ℹ Please use `linewidth` instead.|
 OLS_rej_prob_plot|stem|914f5d9d3fcb8612|6c8bf418aff68cdb|c111094192168715|-1523704834||t20571.5726632194s|s396010b|396010|rds|local|vector|||0.067||
 OLS_risk|stem|1db5b9c57bd9af9b|ec70ccabad2b2efe|879f567005903484|1455208287||t20572.4683614351s|s1018b|1018|rds|local|vector|||258.419||
 alg_rej_prob|stem|6ab20120e1151088|e1da5c3545654ca8|10ba657ce4113187|-811156895||t20572.4701752752s|s302b|302|rds|local|vector|||156.688||
-OLS_plot_risk|stem|a64f2bb0f0f881a0|713284a4db414e2c|76d82a00e79953c6|-420499704||t20572.470177953s|s424380b|424380|rds|local|vector|||0.07||
 rina_bb_test_data|stem|a150ce3cad258f51|6d4aec0f31250749|1a67031d3c4f386d|-1592136759||t20572.7815024467s|s975b|975|rds|local|vector|||351.456||
 rina_bb_test_plot|stem|031f09507c6f1d76|f6e4ac9154795ff5|a9680d15864eb4e6|852458870||t20573.8117059345s|s499376b|499376|rds|local|vector|||1.863|Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0. ℹ Please use `linewidth` instead.|
-alg_rej_prob_plot|stem|8c2642033e6fbf45|dba7f96588c3139f|86ff5516c376bac1|-1658757658||t20580.2881600774s|s395377b|395377|rds|local|vector|||0.065||
+OLS_plot_risk|stem|8464be4ce8c601b3|713284a4db414e2c|4548e76578195572|-420499704||t20580.3680444936s|s432025b|432025|rds|local|vector|||0.054||
 get_cv_test_plot|function|6289360e8d05f833
 beta|object|0f9a722c61834b89
 get_rina_bb_test_plot|function|9ea6407fa7bd10a5
 loss_sq_error|function|1fa4b90194237e90
 lm_alg|function|aefb2d116f064aa4
-get_l_q_stability_plot|function|6e4e78a00f398d5d
+get_l_q_stability_plot|function|fef3b07aac7484ef
 loss_bin|function|42bfb90a330e9b16
-get_OLS_rej_prob_plot|function|825437a440671631
+get_OLS_rej_prob_plot|function|68b987ea6d70656e
 get_OLS_risk|function|188431804916328d
-get_OLS_plot_risk|function|8adfae8368185c2a
+get_OLS_plot_risk|function|b57ed3a02cac9919
 get_rina_bb_test_data|function|3482d8dae331ae1f
 get_alg_rej_prob|function|4179f188eecd289c
 get_l_q_stability_data|function|cf25356c1a725542
 get_cv_test_data|function|eb2bc5aa504993b3
+alg_rej_prob_plot|stem|cbd3a04670e2ad08|dba7f96588c3139f|c2bd205103ecdd63|-1658757658||t20580.3682514255s|s449543b|449543|rds|local|vector|||0.1|Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0. ℹ Please use `linewidth` instead.|
+l_q_stability_plot|stem|2ddfbf01c6f714cc|ab1ad59f2d4f6990|94cb2c62cd92e68c|-1798115336||t20580.3682529964s|s358483b|358483|rds|local|vector|||0.019||

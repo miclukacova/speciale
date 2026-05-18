@@ -100,13 +100,13 @@ colMeans(sprt_test_res1)
 # Neyman–Pearson
 #-------------------------------------------------------------------------------
 
+alpha <- 0.05
+beta <- alpha
 set.seed(9475)
 
 # Defining parameters
 mu0 <- 0
 mu1 <- 0.3
-alpha <- 0.05
-beta <- 0.05
 B <- 3*10^4
 
 # Definition of L_n
@@ -119,7 +119,7 @@ L_n_norm <- function(n, mu) {
 # First we find which n corresponds to the desired significance level and type 2 error
 alpha_n <- 1
 beta_n <- 1
-n <- 70
+n <- 120
 
 np_test_res0 <- vector()
 np_test_res1 <- vector()
@@ -127,8 +127,8 @@ while(alpha_n > alpha | beta_n > beta){
 
   # First we find the needed quantile
   Lns <- vector()
-  for(i in 1:(2*B)) Lns[i] <- L_n_norm(n, mu0)
-  gamma <- quantile(Lns,0.95)
+  for(i in 1:(B)) Lns[i] <- L_n_norm(n, mu0)
+  gamma <- quantile(Lns,1-alpha)
 
   # Then we calculate the type 1 and 2 error
   for(j in 1:(2*B)){
