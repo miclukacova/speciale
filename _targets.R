@@ -3,7 +3,8 @@ library(targets)
 
 # Set target options:
 tar_option_set(
-  packages = c("tibble", "ggplot2", "here")
+  packages = c("tibble", "ggplot2", "here", "dplyr", "tidyr", "purrr",
+               "kableExtra", "rpact", "patchwork")
 )
 
 # Run the R scripts in the R/ folder with your custom functions:
@@ -44,22 +45,21 @@ list(
                                     n = 500, loss = loss_bin, alg = lm_alg)),
   tar_target(
     name = rina_bb_test_plot,
-    command = get_rina_bb_test_plot(rina_bb_test_data, B = 10^4, N = 2500, n = 500))
-)
-
-tar_target(
-  name = e_vs_p_power_data,
-  command = get_e_vs_p_power(alphas = c(0.001, 0.01, 0.05, 0.08),
-                             ns = seq(50, 250, by = 50),
-                             ps = seq(0.1, 0.9, by = 0.05),
-                             n = 100,
-                             B = 5000,
-                             alpha = 0.05,
-                             p = 0.7,
-                             lambda = 0.5),
-                             sampl_fct = sample_binom)
-
-tar_target(
-  name = e_vs_p_power_plot,
-  command = get_e_vs_p_power_plot(e_vs_p_power_data)
-)
+    command = get_rina_bb_test_plot(rina_bb_test_data, B = 10^4, N = 2500, n = 500)),
+  tar_target(
+    name = e_vs_p_power_data,
+    command = get_e_vs_p_power(alphas = c(0.001, 0.01, 0.05, 0.08),
+                               ns = seq(50, 250, by = 50),
+                               ps = seq(0.1, 0.9, by = 0.05),
+                               n = 100,
+                               B = 5000,
+                               alpha = 0.05,
+                               p = 0.7,
+                               lambda = 0.5),
+    sampl_fct = sample_binom),
+  tar_target(
+    name = e_vs_p_power_plot,
+    command = get_e_vs_p_power_plot(e_vs_p_power_data)),
+  tar_target(
+    name = skolova_data,
+    command = get_sokolova_data()))
