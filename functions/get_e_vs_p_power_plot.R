@@ -1,5 +1,7 @@
 get_e_vs_p_power_plot <- function(data){
 
+  return()
+
   #Making dataframe suited to plot
   data_long <- pivot_longer(
     data,

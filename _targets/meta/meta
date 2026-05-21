@@ -15,11 +15,19 @@ alg_rej_prob|stem|6ab20120e1151088|e1da5c3545654ca8|10ba657ce4113187|-811156895|
 rina_bb_test_data|stem|a150ce3cad258f51|6d4aec0f31250749|1a67031d3c4f386d|-1592136759||t20572.7815024467s|s975b|975|rds|local|vector|||351.456||
 rina_bb_test_plot|stem|031f09507c6f1d76|f6e4ac9154795ff5|a9680d15864eb4e6|852458870||t20573.8117059345s|s499376b|499376|rds|local|vector|||1.863|Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0. ℹ Please use `linewidth` instead.|
 OLS_plot_risk|stem|8464be4ce8c601b3|713284a4db414e2c|4548e76578195572|-420499704||t20580.3680444936s|s432025b|432025|rds|local|vector|||0.054||
+alg_rej_prob_plot|stem|cbd3a04670e2ad08|dba7f96588c3139f|c2bd205103ecdd63|-1658757658||t20580.3682514255s|s449543b|449543|rds|local|vector|||0.1|Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0. ℹ Please use `linewidth` instead.|
+l_q_stability_plot|stem|2ddfbf01c6f714cc|ab1ad59f2d4f6990|94cb2c62cd92e68c|-1798115336||t20580.3682529964s|s358483b|358483|rds|local|vector|||0.019||
+e_vs_p_power_data|stem|1d47feb84585e2b4|7745072ad0a8dc0d|ec60c6543b6ef872|1973774540||t20594.3156495237s|s44b|44|rds|local|vector|||0.425|package ‘rpact’ was built under R version 4.4.3|
+e_vs_p_power_plot|stem|1d47feb84585e2b4|6f96195b2b4a4838|16ff53bf74a55ed3|1831710262||t20594.3290589609s|s44b|44|rds|local|vector|||0.007||
 get_cv_test_plot|function|6289360e8d05f833
 beta|object|0f9a722c61834b89
+sample_patient|function|59df4a6cc8f69507
+get_e_vs_p_power|function|0c5ea406d9201ae0
 get_rina_bb_test_plot|function|9ea6407fa7bd10a5
 loss_sq_error|function|1fa4b90194237e90
+alphas_soko|function|0a9c063dcc38572a
 lm_alg|function|aefb2d116f064aa4
+get_e_vs_p_power_plot|function|bb01ea0b16bcef9a
 get_l_q_stability_plot|function|fef3b07aac7484ef
 loss_bin|function|42bfb90a330e9b16
 get_OLS_rej_prob_plot|function|68b987ea6d70656e
@@ -27,7 +35,11 @@ get_OLS_risk|function|188431804916328d
 get_OLS_plot_risk|function|b57ed3a02cac9919
 get_rina_bb_test_data|function|3482d8dae331ae1f
 get_alg_rej_prob|function|4179f188eecd289c
+eprocess_run|function|4979499b53772ee6
+gs_run|function|01711144a4811437
+sprt_run|function|816c9c9115d6af3e
 get_l_q_stability_data|function|cf25356c1a725542
 get_cv_test_data|function|eb2bc5aa504993b3
-alg_rej_prob_plot|stem|cbd3a04670e2ad08|dba7f96588c3139f|c2bd205103ecdd63|-1658757658||t20580.3682514255s|s449543b|449543|rds|local|vector|||0.1|Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0. ℹ Please use `linewidth` instead.|
-l_q_stability_plot|stem|2ddfbf01c6f714cc|ab1ad59f2d4f6990|94cb2c62cd92e68c|-1798115336||t20580.3682529964s|s358483b|358483|rds|local|vector|||0.019||
+run_scenario|function|149d4c7187025332
+get_sokolova_data|function|b99c9fc5169a456a
+skolova_data|stem|91bf77a57eb575be|9700bbe2c5a089c2|e8c61819d195e45b|800057291||t20594.5496096006s|s718b|718|rds|local|vector|||260.904|package ‘rpact’ was built under R version 4.4.3|

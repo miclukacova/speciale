@@ -1,5 +1,3 @@
-
-
 get_e_vs_p_power <- function(
     alphas = c(0.001, 0.01, 0.05, 0.08),
     ns = seq(50, 250, by = 50),
@@ -11,6 +9,8 @@ get_e_vs_p_power <- function(
     lambda = 0.5,
     sample_fct
 ) {
+
+  return()
 
 
   #Function for getting rejectiong probabilities

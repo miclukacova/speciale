@@ -54,7 +54,8 @@ alphas_soko <- function(p_c, p_t, n_looks, Nmax, B = 10^4, alpha = 0.05) {
 # E-process
 #-------------------------------------------------------------------------------
 
-eprocess_run <- function(p_c, p_t, Nmax, alpha, lambda = NULL, alphas, n_looks, null = FALSE) {
+eprocess_run <- function(p_c, p_t, Nmax, alpha, lambda = NULL, null = FALSE,
+                         returnPath = FALSE, ...) {
 
   if(is.null(lambda)) {
     lambda_star <- (
@@ -70,8 +71,9 @@ eprocess_run <- function(p_c, p_t, Nmax, alpha, lambda = NULL, alphas, n_looks, 
 
   e_vals <- cumprod(1 + lambda_star * X)
 
-  n_stop <- min(which(e_vals >= 1 / alpha), Nmax)
+  if(returnPath) return(tibble(n = 1:Nmax, value = e_vals))
 
+  n_stop <- min(which(e_vals >= 1 / alpha), Nmax)
   reject <- any(e_vals >= 1 / alpha)
 
   tibble(
@@ -85,20 +87,42 @@ eprocess_run <- function(p_c, p_t, Nmax, alpha, lambda = NULL, alphas, n_looks, 
 # SPRT
 #-------------------------------------------------------------------------------
 
-sprt_run <- function(p_c, p_t, Nmax, alpha, lambda = NULL, alphas, n_looks, null = FALSE){
+sprt_run <- function(p_c, p_t, Nmax, alpha, null = FALSE, noMax = FALSE,
+                     returnPath = FALSE, p_t_misspec = FALSE, ...){
+
+  if(p_t_misspec == FALSE) p_tt <- p_t
+  else p_tt <- p_t_misspec
 
   if(null) X <- sample_patient(p_c, p_c, Nmax)
-  else X <- sample_patient(p_c, p_t, Nmax)
+  else X <- sample_patient(p_c, p_tt, Nmax)
 
   f_1 <- p_t * (1 - p_c) * (X == 1) +  (1 - p_t) * p_c * (X == -1) + (X == 0) * ((1 - p_t) * (1 - p_c) + p_t * p_c)
   f_0 <-  p_c * (1 - p_c) * (X == 1 | X == -1) + (p_c * p_c + (1 - p_c)^2)* (X == 0)
 
   ratio <- cumprod(f_1 / f_0)
 
+  i <- 0
+  while(noMax & all(ratio > alpha & ratio < 1 / alpha)) {
+
+    if(null) X <- sample_patient(p_c, p_c, Nmax)
+    else X <- sample_patient(p_c, p_t, Nmax)
+
+    f_1 <- p_t * (1 - p_c) * (X == 1) +  (1 - p_t) * p_c * (X == -1) + (X == 0) * ((1 - p_t) * (1 - p_c) + p_t * p_c)
+    f_0 <-  p_c * (1 - p_c) * (X == 1 | X == -1) + (p_c * p_c + (1 - p_c)^2)* (X == 0)
+
+    ratio <- cumprod(f_1 / f_0) * ratio
+
+    i <- i + 1
+  }
+
+  if(returnPath) return(tibble(n = 1:((i + 1) * Nmax), value = ratio))
+
   n_stop <- min(
     which(ratio <= alpha | ratio >= 1 / alpha),
     Nmax
   )
+
+  if(noMax) n_stop <- min(which(ratio <= alpha | ratio >= 1 / alpha)) + i * Nmax
 
   reject <- any(ratio >= 1 / alpha)
 
@@ -112,7 +136,8 @@ sprt_run <- function(p_c, p_t, Nmax, alpha, lambda = NULL, alphas, n_looks, null
 # Group Sequential
 #-------------------------------------------------------------------------------
 
-gs_run <- function(p_c, p_t, Nmax, alpha, lambda = NULL, alphas, n_looks, null = FALSE) {
+gs_run <- function(p_c, p_t, Nmax, alphas, n_looks, null = FALSE,
+                   returnPath = FALSE,...) {
 
   # Information times / looks
   look_times <- round(seq(Nmax / n_looks, Nmax, length.out = n_looks))
@@ -143,6 +168,8 @@ gs_run <- function(p_c, p_t, Nmax, alpha, lambda = NULL, alphas, n_looks, null =
     Z_k_star[k] <- Xbar_k / sd_0 * sqrt(look_times[k])
   }
 
+  if(returnPath) return(tibble(n = look_times, value = Z_k_star))
+
   # Boundary crossing
   test_res <- Z_k_star >= alphas
 
@@ -156,6 +183,8 @@ gs_run <- function(p_c, p_t, Nmax, alpha, lambda = NULL, alphas, n_looks, null =
 
 }
 
+
+
 #-------------------------------------------------------------------------------
 # Main simulation wrapper
 #-------------------------------------------------------------------------------
@@ -168,7 +197,8 @@ run_scenario <- function(
     B = 10000,
     alphas,
     lambda = NULL,
-    n_looks
+    n_looks,
+    noMax = FALSE
 ) {
 
   methods <- c("E-process", "SPRT", "GS")
@@ -185,7 +215,7 @@ run_scenario <- function(
     tmp <- replicate(
       B,
       run_func(p_c = p_c, p_t = p_t, Nmax = Nmax, alpha = alpha, alphas = alphas,
-               n_looks = n_looks, lambda = lambda),
+               n_looks = n_looks, lambda = lambda, noMax = noMax),
       simplify = FALSE
     )
 
@@ -193,7 +223,7 @@ run_scenario <- function(
     tmp2 <- replicate(
       B,
       run_func(p_c = p_c, p_t = p_t, Nmax = Nmax, alpha = alpha, alphas = alphas,
-               n_looks = n_looks, lambda = lambda, null = TRUE),
+               n_looks = n_looks, lambda = lambda, null = TRUE, noMax = noMax),
       simplify = FALSE
     )
 
