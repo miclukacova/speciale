@@ -60,4 +60,8 @@ list(
     command = get_e_vs_p_power_plot(e_vs_p_power_data)),
   tar_target(
     name = skolova_data,
-    command = get_sokolova_data()))
+    command = get_sokolova_data()),
+  tar_target(
+    name = NP_vs_SPRT_vs_GS,
+    command = get_NP_vs_SPRT_vs_GS()
+  ))
