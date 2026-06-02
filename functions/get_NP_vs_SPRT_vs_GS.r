@@ -67,7 +67,7 @@ get_NP_vs_SPRT_vs_GS <- function(B = 5 * 10^4) {
       L <- L * ratio()
       i <- i + 1
     }
-    return(c(L >= 1, i))
+    return(c(L >= gamma1, i))
   }
   #-------------------------------------------------------------------------------
   # Group-Sequential trial
