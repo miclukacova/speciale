@@ -1,8 +1,8 @@
 #-------------------------------------------------------------------------------
 # Function to compare power and expected sample size in a scenario where we test the mean of Bernoulli variables
 
-get_HCP_Holmes_comp <- function(alpha = 0.05, m_0 = 0.5, m_1 = 0.65, N = 300, c = 1 / 2,
-                                theta = 3 / 4, B = 10^4, gamma = 0.9, p_c = 0.3, p_t = 0.45) {
+get_HCP_Holmes_comp <- function(alpha = 0.05, m_true = 0.6, m_0 = 0.5, m_1 = 0.65, N = 300, c = 1 / 2,
+                                theta = 3 / 4, B = 10^4, gamma = 0.9) {
 
   set.seed(37238493)
 
@@ -34,18 +34,13 @@ get_HCP_Holmes_comp <- function(alpha = 0.05, m_0 = 0.5, m_1 = 0.65, N = 300, c 
   }
 
   # Data sampling functions
-  sample_patient <- function(p_c, p_t, n) {
-    pat_c <- rbinom(n,1,p_c)
-    pat_t <- rbinom(n,1,p_t)
-    (pat_t - pat_c + 1) / 2
-  }
-
+  sample_bern <- function(N, m_true) rbinom(N, 1, m_true)
 
   # The hedged capital process
-  hedged_cap_proc <- function(m_0, c, sample_data, N, theta) {
+  hedged_cap_proc <- function(m_0, m_true, c, sample_data, N, theta) {
 
     # Sample data
-    X <- sample_data(N)
+    X <- sample_data(N, m_true)
 
     # Calculate the lambda's
     lambda_tilde <- calculate_lambda_tilde(X, alpha = alpha)
@@ -70,21 +65,18 @@ get_HCP_Holmes_comp <- function(alpha = 0.05, m_0 = 0.5, m_1 = 0.65, N = 300, c 
     return(c(Reject = any(test_res[1:ESS]), ESS = ESS))
   }
 
-
-
   # Plot the process
-  simulate_paths <- function(p_c, p_t, label) {
-
-    sample_data <- function(N) sample_patient(p_c, p_t, N)
+  simulate_paths <- function(m_true_value, label) {
 
     HCP_mat <- replicate(
       10,
       hedged_cap_proc(
         m_0 = m_0,
         c = c,
-        sample_data = sample_data,
+        sample_data = sample_bern,
         N = N,
-        theta = theta
+        theta = theta,
+        m_true = m_true_value
       )
     )
 
@@ -96,8 +88,8 @@ get_HCP_Holmes_comp <- function(alpha = 0.05, m_0 = 0.5, m_1 = 0.65, N = 300, c 
     )
   }
 
-  df_alt <- simulate_paths(p_c, p_t, "Alternative (m_true ≠ m_0)")
-  df_null <- simulate_paths(p_c, p_c, "Null (m_true = m_0)")
+  df_alt <- simulate_paths(m_true, "Alternative (m_true ≠ m_0)")
+  df_null <- simulate_paths(m_0, "Null (m_true = m_0)")
 
   df <- rbind(df_alt, df_null)
 
@@ -125,13 +117,10 @@ get_HCP_Holmes_comp <- function(alpha = 0.05, m_0 = 0.5, m_1 = 0.65, N = 300, c 
   gamma0 <- beta / (1 - alpha)
   gamma1 <- (1 - alpha) / beta
 
-  sprt_test <- function(N, p_c, p_t, sample_data) {
+  sprt_test <- function(N, m_true, m_0, m_1) {
 
-    X <- sample_data(N)
-    f_1 <- p_t * (1 - p_c) * (X == 1) +  (1 - p_t) * p_c * (X == 0) + (X == 1 / 2) * ((1 - p_t) * (1 - p_c) + p_t * p_c)
-    f_0 <-  p_c * (1 - p_c) * (X == 1 | X == 0) + (p_c * p_c + (1 - p_c) ^ 2) * (X == 1 / 2)
-
-    L <- cumprod(f_1 / f_0)
+    X <- rbinom(N, 1, m_true)
+    L <- cumprod(dbinom(X, 1, m_1) / dbinom(X, 1, m_0))
     ss <- min(which(L > gamma1 | gamma0 > L), N)
 
     return(c(L[ss] > gamma1, ss))
@@ -139,28 +128,20 @@ get_HCP_Holmes_comp <- function(alpha = 0.05, m_0 = 0.5, m_1 = 0.65, N = 300, c 
 
   # Adaptive version
 
-  sprt_test_adap <- function(N, sample_data, p_c) {
-    X <- sample_data(N)
+  sprt_test_adap <- function(N, m_true, m_0, m_1) {
+    X <- rbinom(N, 1, m_true)
     # Plug-in estimator
-    p_t_est <- c(p_t, 2 * cumsum(X[1:(N-1)]) / 1:(N-1) - 1 + p_c)
-    p_t_est[p_t_est < 0] <- 0.1
+    m_1_est <- cumsum(c(0.5, X[1:(N-1)])) / seq_len(N)
     # E-process
-    f_1 <- p_t_est * (1 - p_c) * (X == 1) +  (1 - p_t_est) * p_c * (X == 0) +
-      (X == 1 / 2) * ((1 - p_t_est) * (1 - p_c) + p_t_est * p_c)
-    f_0 <-  p_c * (1 - p_c) * (X == 1 | X == 0) + (p_c * p_c + (1 - p_c) ^ 2) * (X == 1 / 2)
-    L <- cumprod(f_1 / f_0)
+    L <- cumprod(dbinom(X, 1,  m_1_est) / dbinom(X, 1, m_0))
     # Sample size
     ss <- min(which(L > gamma1 | gamma0 > L), N)
     return(c(L[ss] > gamma1, ss))
   }
 
-  sprt_test_adap(N=300, p_c = 0.3, sample_data = sample_data)
-
   #-------------------------------------------------------------------------------
   ## Holmes method
   #-------------------------------------------------------------------------------
-
-  # Vi bliver nødt til at simulere for at få fat i kvantilerne
 
   holmes_test <- function(N, m_true, m_0, gamma) {
 
