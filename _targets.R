@@ -40,15 +40,6 @@ list(
                                     N = 2500,
                                     n = 500)),
   tar_target(
-    name = l_q_stability_data,
-    command = get_l_q_stability_data(B = 500,
-                                     q = 2,
-                                     alg = lm_alg,
-                                     loss = loss_sq_error)),
-  tar_target(
-    name = l_q_stability_plot,
-    command = get_l_q_stability_plot(l_q_stability_data)),
-  tar_target(
     name = cv_test_data,
     command = get_cv_test_data(taus = seq(0.85,1.2, by = 0.005),
                                B = 10^4,

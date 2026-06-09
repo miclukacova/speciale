@@ -1,6 +1,13 @@
 #-------------------------------------------------------------------------------
 # Function to compare power and expected sample size in a scenario where we test the mean of Bernoulli variables
 
+if(FALSE){
+  source("~/Desktop/Uni/Speciale/speciale/functions/GS_test.R")
+  source("~/Desktop/Uni/Speciale/speciale/functions/HCP_test.R")
+  source("~/Desktop/Uni/Speciale/speciale/functions/Holmes_test.R")
+  source("~/Desktop/Uni/Speciale/speciale/functions/SPRT.R")
+}
+
 get_seq_test_comp_bern <- function() {
 
   # Parameters
@@ -26,11 +33,12 @@ get_seq_test_comp_bern <- function() {
   }
 
   ## SPRT
-  f0 <- function(x) dbinom(x, 1,  m_0)
-  f1_adap <- function(x) {
+  f0 <- function(X) dbinom(X, 1,  m_0)
+  f1_adap <- function(X) {
+    N <- length(X)
     # OBS: estimate has to be predictable
-    m_est <- cumsum(c(0.5, x[1:(N-1)])) / seq_len(N)
-    dbinom(x, 1,  m_est)
+    m_est <- cumsum(c(0.5, X[1:(N-1)])) / seq_len(N)
+    dbinom(X, 1,  m_est)
   }
 
 
@@ -64,45 +72,46 @@ get_seq_test_comp_bern <- function() {
       # Simulations
       for (b in seq_len(B)) {
 
+        # Simulate data
+        X <- sample_data(N)
+
         # HCP
         HCP_res[b, ] <- run_HCP_test(m_0 = m_0,
                                      c = c,
-                                     sample_data = sample_data,
-                                     N = N,
+                                     X = X,
                                      theta = theta,
-                                     alpha)
+                                     alpha = alpha)
 
         # HOLMES
         z_ag <- qbinom(p = 1 - (alpha * gamma), size = N, prob = m_0)
         calc_q_n <- function(X, N) {
           1 - pbinom(q = z_ag - cumsum(X), size = seq(N-1, 0), prob = m_0)
         }
-        HOLM_res[b, ] <- holmes_test(N = N,
-                                     sample_data_true = sample_data,
-                                     calc_q_n = calc_q_n,
-                                     gamma = gamma,
-                                     quanti = z_ag,
-                                     B = 1000)
+        HOLM_res[b, ] <- run_holmes_test(N = N,
+                                         X = X,
+                                         calc_q_n = calc_q_n,
+                                         gamma = gamma,
+                                         quanti = z_ag)
 
         # Fixed SPRTs
         for (j in seq_along(m1_grid)) {
           f1 <- function(x) dbinom(x, 1,  m1_grid[j])
 
-          SPRT_res[b, (2 * j - 1):(2 * j)] <- sprt_test(N = N,
-                                                        sample_data = sample_data,
-                                                        f0 = f0,
-                                                        f1 = f1,
-                                                        beta = alpha,
-                                                        alpha = alpha)
+          SPRT_res[b, (2 * j - 1):(2 * j)] <- run_sprt_test(N = N,
+                                                            X = X,
+                                                            f0 = f0,
+                                                            f1 = f1,
+                                                            beta = alpha,
+                                                            alpha = alpha)
         }
 
         # Adaptive SPRT
-        SPRT_res[b, (2 * n_sprt + 1):(2 * n_sprt + 2)] <- sprt_test(N,
-                                                                    sample_data = sample_data,
-                                                                    f0 = f0,
-                                                                    f1 = f1_adap,
-                                                                    beta = alpha,
-                                                                    alpha = alpha)
+        SPRT_res[b, (2 * n_sprt + 1):(2 * n_sprt + 2)] <- run_sprt_test(N,
+                                                                        X = X,
+                                                                        f0 = f0,
+                                                                        f1 = f1_adap,
+                                                                        beta = alpha,
+                                                                        alpha = alpha)
       }
 
       # ----------------------------

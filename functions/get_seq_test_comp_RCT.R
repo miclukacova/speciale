@@ -2,7 +2,10 @@
 # Function to compare power and expected sample size in a scenario where we test the mean of Bernoulli variables
 
 if(FALSE){
-  tar_source("functions")
+  source("~/Desktop/Uni/Speciale/speciale/functions/GS_test.R")
+  source("~/Desktop/Uni/Speciale/speciale/functions/HCP_test.R")
+  source("~/Desktop/Uni/Speciale/speciale/functions/Holmes_test.R")
+  source("~/Desktop/Uni/Speciale/speciale/functions/SPRT.R")
 }
 get_seq_test_comp_RCT <- function(B = 500,
                                   B1 = 500,
@@ -34,7 +37,8 @@ get_seq_test_comp_RCT <- function(B = 500,
   f0 <- function(X) p_c * (1 - p_c) * (X == 1 | X == 0) + (p_c * p_c + (1 - p_c) ^ 2) * (X == 1 / 2)
 
   f1_adap <- function(X){
-    p_t <- c(p_c, 2 * cumsum(X[1:(N - 1)]) / 1:(N - 1) - 1 + p_c)
+    N <- length(X)
+    p_t <- c(p_c, 2 * cumsum(X[1:(N - 1)]) / (1:(N - 1)) - 1 + p_c)
     p_t <- pmax(p_t, 0.1)
     p_t * (1 - p_c) * (X == 1) +  (1 - p_t) * p_c * (X == 0) + (X == 1 / 2) * ((1 - p_t) * (1 - p_c) + p_t * p_c)
   }
@@ -52,7 +56,6 @@ get_seq_test_comp_RCT <- function(B = 500,
 
   # Main test comparison function
   compare_tests <- function(N) {
-
     results <- vector("list", length(p_t_true_grid))
     for (g in seq_along(p_t_true_grid)) {
       print(g)
@@ -61,80 +64,134 @@ get_seq_test_comp_RCT <- function(B = 500,
       sample_data <- function(N) sample_patient(N, p_t_true)
 
       # Storage
-      HCP_res <- matrix(NA_real_,
-                        nrow = B,
-                        ncol = 2,
-                        dimnames = list(NULL, c("Reject", "ESS")))
-      HOLM_res <- HCP_res
-      GS_res <- HCP_res
+      HCP_res <- matrix(NA_real_, nrow = B, ncol = 2)
+      HOLM_res <- matrix(NA_real_, nrow = B, ncol = 2)
+      GS_res <- matrix(NA_real_, nrow = B, ncol = 2)
       n_sprt <- length(sprt_grid)
-      SPRT_res <- matrix(NA_real_,
-                         nrow = B,
-                         ncol = 2 * n_sprt + 2)
-
-      colnames(SPRT_res) <- c(as.vector(rbind(paste0("Reject_", sprt_grid), paste0("ESS_", sprt_grid))),
-                              "Reject_adap", "ESS_adap")
+      SPRT_res <- matrix(NA_real_, nrow = B, ncol = 2 * n_sprt + 2)
 
       # Simulations
-      for (b in seq_len(B)) {
+      sim_results <- future_lapply(
+        seq_len(B),
+        function(b) {
 
-        X <- sample_data(N)
+          X <- sample_data(N)
 
-        # HCP
-        HCP_res[b, ] <- run_HCP_test(m_0 = 1 / 2,
-                                     c = c,
-                                     X = X,
-                                     theta = theta,
-                                     alpha = alpha)
+          # HCP
+          HCP <- run_HCP_test(
+            m_0 = 1 / 2,
+            c = c,
+            X = X,
+            theta = theta,
+            alpha = alpha
+          )
 
-        # HOLMES
-        z_ag <- qbinom(p = 1 - (alpha * gamma), size = N, prob = m_0)
-        calc_q_n <- function(X, N) {
-          1 - pbinom(q = z_ag - cumsum(X), size = seq(N-1, 0), prob = m_0)
-        }
-        HOLM_res[b, ] <- run_holmes_test(N = N,
-                                         X = X,
-                                         sample_data_null = function(N) sample_patient(N, p_c),
-                                         gamma = gamma,
-                                         quanti = z_ag,
-                                         B = B1)
+          # HOLMES
+          HOLM <- run_holmes_test(
+            N = N,
+            X = X,
+            sample_data_null = function(N) sample_patient(N, p_c),
+            gamma = gamma,
+            quanti = z_ag,
+            B = B1
+          )
 
-        # Fixed SPRTs
-        for (j in seq_along(sprt_grid)) {
-          f1 <- function(X) sprt_grid[j] * (1 - p_c) * (X == 1) +  (1 - sprt_grid[j]) * p_c * (X == 0) + (X == 1 / 2) * ((1 - sprt_grid[j]) * (1 - p_c) + sprt_grid[j] * p_c)
-          SPRT_res[b, (2 * j - 1):(2 * j)] <- run_sprt_test(N,
-                                                            X = X,
-                                                            f0 = f0,
-                                                            f1 = f1,
-                                                            beta = alpha,
-                                                            alpha = alpha)
-        }
+          # SPRTs
+          SPRT <- numeric(2 * n_sprt + 2)
 
-        # Adaptive SPRT
-        SPRT_res[b, (2 * n_sprt + 1):(2 * n_sprt + 2)] <- run_sprt_test(N,
-                                                                        X = X,
-                                                                        f0 = f0,
-                                                                        f1 = f1_adap,
-                                                                        beta = alpha,
-                                                                        alpha = alpha)
+          for (j in seq_along(sprt_grid)) {
 
-        # GS test
-        GS_res[b, ] <- gs_run(Nmax = N,
-                              alphas = alphas,
-                              n_looks = n_looks,
-                              X = X,
-                              sd0 = sd0,
-                              m_0 = m_0)
+            f1 <- function(X) {
+              sprt_grid[j] * (1 - p_c) * (X == 1) +
+                (1 - sprt_grid[j]) * p_c * (X == 0) +
+                (X == 1 / 2) *
+                ((1 - sprt_grid[j]) * (1 - p_c) +
+                   sprt_grid[j] * p_c)
+            }
 
-      }
+            SPRT[(2 * j - 1):(2 * j)] <- run_sprt_test(
+              N,
+              X = X,
+              f0 = f0,
+              f1 = f1,
+              beta = alpha,
+              alpha = alpha
+            )
+          }
+
+          # Adaptive SPRT
+          SPRT[(2 * n_sprt + 1):(2 * n_sprt + 2)] <-
+            run_sprt_test(
+              N,
+              X = X,
+              f0 = f0,
+              f1 = f1_adap,
+              beta = alpha,
+              alpha = alpha
+            )
+
+          # GS
+          GS <- gs_run(
+            Nmax = N,
+            alphas = alphas,
+            n_looks = n_looks,
+            X = X,
+            sd0 = sd0,
+            m_0 = m_0
+          )
+
+          list(
+            HCP = HCP,
+            HOLM = HOLM,
+            SPRT = SPRT,
+            GS = GS
+          )
+        },
+        future.seed = TRUE
+      )
+
+      HCP_res <- do.call(
+        rbind,
+        lapply(sim_results, `[[`, "HCP")
+      )
+      colnames(HCP_res) <- c("Reject", "ESS")
+
+      HOLM_res <- do.call(
+        rbind,
+        lapply(sim_results, `[[`, "HOLM")
+      )
+      colnames(HOLM_res) <- c("Reject", "ESS")
+
+      SPRT_res <- do.call(
+        rbind,
+        lapply(sim_results, `[[`, "SPRT")
+      )
+      colnames(SPRT_res) <- c(
+        as.vector(rbind(
+          paste0("Reject_", sprt_grid),
+          paste0("ESS_", sprt_grid)
+        )),
+        "Reject_adap",
+        "ESS_adap"
+      )
+
+      GS_res <- do.call(
+        rbind,
+        lapply(sim_results, `[[`, "GS")
+      )
+      colnames(GS_res) <- c("Reject", "ESS")
 
       # ----------------------------
       # Summaries
       # ----------------------------
 
-      out <- list(p_t_true = p_t_true, HCP_power = mean(HCP_res[, "Reject"]),
-                  HCP_ESS   = mean(HCP_res[, "ESS"]), HOLM_power = mean(HOLM_res[, "Reject"]),
-                  HOLM_ESS   = mean(HOLM_res[, "ESS"]))
+      out <- list(p_t_true = p_t_true,
+                  HCP_power = mean(HCP_res[, "Reject"]),
+                  HCP_ESS   = mean(HCP_res[, "ESS"]),
+                  HOLM_power = mean(HOLM_res[, "Reject"]),
+                  HOLM_ESS   = mean(HOLM_res[, "ESS"]),
+                  GS_power = mean(GS_res[, "Reject"]),
+                  GS_ESS   = mean(GS_res[, "ESS"]))
 
       for (j in seq_along(sprt_grid)) {
         out[[paste0("SPRT_power_", sprt_grid[j])]] <- mean(SPRT_res[, paste0("Reject_", sprt_grid[j])])
@@ -151,9 +208,15 @@ get_seq_test_comp_RCT <- function(B = 500,
   }
 
   set.seed(37238493)
-  res <- compare_tests(N = N)
+  # To parallelize
+  future::plan(
+    future::multisession,
+    workers = parallel::detectCores() - 1
+  )
+
+  res <- compare_tests(N)
+  res1 <- compare_tests(N1)
   df <- res
-  res1 <- compare_tests(N = N1)
   df1 <- res1
 
   clean_method_names <- function(x) {
@@ -207,5 +270,5 @@ get_seq_test_comp_RCT <- function(B = 500,
     facet_wrap(~Design, scales = "free_y") +
     theme_minimal()
 
-  return(list(df1 = df1, df2 = df2, p2 = p2, p3 = p3))
+  return(list(df = df, df1 = df1, p2 = p2, p3 = p3))
 }
