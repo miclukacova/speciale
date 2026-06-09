@@ -3,16 +3,17 @@
 ################################################################################
 
 # Function for sampling patients
-sample_patient <- function(p_c, p_t, n) {
-  pat_c <- rbinom(n,1,p_c)
-  pat_t <- rbinom(n,1,p_t)
+sample_patient <- function(p_c, p_t, N) {
+  pat_c <- rbinom(N,1,p_c)
+  pat_t <- rbinom(N,1,p_t)
   pat_t - pat_c
 }
+
 
 #-------------------------------------------------------------------------------
 # Obrian/Pocock boundaries
 
-alphas_soko <- function(p_c, p_t, n_looks, Nmax, B = 10^4, alpha = 0.05) {
+alphas_soko <- function(p_c, n_looks, Nmax, B = 10^4, alpha = 0.05) {
 
   # Define quantities
   look_times <- round(seq(Nmax/n_looks, Nmax, length.out = n_looks))
@@ -21,27 +22,22 @@ alphas_soko <- function(p_c, p_t, n_looks, Nmax, B = 10^4, alpha = 0.05) {
   # Sample data
   xT_null_mat <- matrix(stats::rbinom(B * Nmax, 1, p_c),nrow = B)
   xC_null_mat <- matrix(stats::rbinom(B * Nmax, 1, p_c),nrow = B)
-  xT_alt_mat <- matrix(stats::rbinom(B * Nmax, 1, p_t),nrow = B)
-  xC_alt_mat <- matrix(stats::rbinom(B * Nmax, 1, p_c),nrow = B)
 
   # Sum number of sucesses in each stage for all B replications
   cumT_null <- t(apply(xT_null_mat, 1, cumsum))[, look_times, drop = FALSE]
   cumC_null <- t(apply(xC_null_mat, 1, cumsum))[, look_times, drop = FALSE]
-  cumT_alt <- t(apply(xT_alt_mat, 1, cumsum))[, look_times, drop = FALSE]
-  cumC_alt <- t(apply(xC_alt_mat, 1, cumsum))[, look_times, drop = FALSE]
 
   # Number of observations in each stage for all B replications
   nn_looks <- matrix(look_times, nrow = B, ncol = length(look_times), byrow = TRUE)
 
   # Estimated effect sizes divided by standard error
   z_null <- evalinger:::.z_matrix(cumT_null, cumC_null, nn_looks)
-  z_alt <- evalinger:::.z_matrix(cumT_alt, cumC_alt, nn_looks)
 
   # We find the maximal effect size across stages for each of the B trials
   m_null <- apply(z_null * matrix(sqrt(info_frac), nrow = B, ncol = length(info_frac), byrow = TRUE), 1, max)
   # Take the quantile of the maximal effect sizes
   gs_c <- as.numeric(stats::quantile(m_null, probs = 1 - alpha, names = FALSE))
-  obf_bounds <- gs_c/sqrt(info_frac)
+  obf_bounds <- gs_c / sqrt(info_frac)
 
   return(obf_bounds)
 }
@@ -182,7 +178,6 @@ gs_run <- function(p_c, p_t, Nmax, alphas, n_looks, null = FALSE,
   )
 
 }
-
 
 
 #-------------------------------------------------------------------------------
