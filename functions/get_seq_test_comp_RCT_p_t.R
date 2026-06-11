@@ -4,26 +4,32 @@
 if(FALSE){
   source("~/Desktop/Uni/Speciale/speciale/functions/GS_test.R")
   source("~/Desktop/Uni/Speciale/speciale/functions/HCP_test.R")
-  source("~/Desktop/Uni/Speciale/speciale/functions/Holmes_test.R")
+  source("~/Desktop/Uni/Speciale/speciale/functions/HW_test.R")
   source("~/Desktop/Uni/Speciale/speciale/functions/SPRT.R")
 }
-get_seq_test_comp_RCT <- function(B = 500,
-                                  B1 = 500,
-                                  N = 200,
-                                  N1 = 500) {
+
+get_seq_test_comp_RCT_p_t <- function(B = 500,
+                                      B1 = 500,
+                                      N = 100,
+                                      N1 = 200) {
 
   # Parameters
-  p_t_true_grid <- seq(0.3, 0.7, by = 0.05)
+  p_t_true_grid <- seq(0.3, 0.62, by = 0.04)
   sprt_grid <- c(0.45, 0.6)
   p_c <- 0.3
   m_0 = 1 / 2
   c = 0.5
-  theta = 3 / 2
+  theta = 1
   alpha = 0.05
   gamma = 0.9
   n_looks = 4
   alphas = alphas_soko(p_c, n_looks, Nmax = N, B = B, alpha = alpha)
-  sd0 = sqrt(1 / 2 * p_c * (1 - p_c))
+
+  # GST
+  #alphas <- rpact::getDesignGroupSequential(kMax = 4,
+  #                                          alpha = alpha,
+  #                                          sided = 1,
+  #                                          typeOfDesign = "OF")$criticalValues
 
   # Data sampling function
   sample_patient <- function(N, p_t) {
@@ -38,24 +44,71 @@ get_seq_test_comp_RCT <- function(B = 500,
 
   f1_adap <- function(X){
     N <- length(X)
-    p_t <- c(p_c, 2 * cumsum(X[1:(N - 1)]) / (1:(N - 1)) - 1 + p_c)
-    p_t <- pmax(p_t, 0.1)
-    p_t * (1 - p_c) * (X == 1) +  (1 - p_t) * p_c * (X == 0) + (X == 1 / 2) * ((1 - p_t) * (1 - p_c) + p_t * p_c)
+    cum_mean <- c(0.5, cumsum(X[-N]) / seq_len(N-1))
+    p_t <- 2 * cum_mean - 1 + p_c
+    p_t <- pmin(pmax(p_t, 0.1), 0.98)
+    p_t * (1 - p_c) * (X == 1) +  (1 - p_t) * p_c * (X == 0) + (X == (1 / 2)) * ((1 - p_t) * (1 - p_c) + p_t * p_c)
   }
 
-  # Holmes - quantile estimation for all p_t_true values
-  X <- vector(length = B)
-  for(i in 1:B) X[i] <- sum(sample_patient(N, p_c))
-  z_ag <- quantile(X, 1 - alpha)
 
-  # GST
-  #alphas <- rpact::getDesignGroupSequential(kMax = 4,
-  #                                          alpha = alpha,
-  #                                          sided = 1,
-  #                                          typeOfDesign = "OF")$criticalValues
+  # -----------------------------------------------------------
+  # Precompute HW critical values and Q_n calculating function
+  # -----------------------------------------------------------
 
-  # Main test comparison function
-  compare_tests <- function(N) {
+  cat("Precomputing critical values...\n")
+
+  # Function to calculate quantiles under the null
+  null_pmf <- function(N){
+
+    probs <- c(p_c * (1 - p_c), p_c^2 + (1 - p_c)^2, p_c * (1 - p_c))
+    pmf <- probs
+
+    if(N > 1){
+      for(i in 2:N){
+        pmf <- convolve(pmf, rev(probs), type="open")
+      }
+    }
+    pmf
+  }
+
+  z_ag_exact <- function(N){
+    cdf <- cumsum(null_pmf(N))
+    k <- which(cdf >= 1 - alpha * gamma)[1]
+    (k - 1) / 2
+  }
+
+  z_ag <- z_ag_exact(N)
+  z_ag1 <- z_ag_exact(N1)
+
+  # Function for calculating Q_n
+  calc_q_n <- function(X, N, z_ag){
+
+    Q_n <- numeric(N)
+
+    for(i in seq_len(N-1)){
+      s_obs <- sum(X[1:i])
+      threshold <- z_ag - s_obs
+      pmf <- null_pmf(N-i)
+      support <- seq(
+        0,
+        by = 0.5,
+        length.out = length(pmf)
+      )
+      Q_n[i] <- sum(pmf[support >= threshold])
+
+      if(Q_n[i] >= gamma) break
+    }
+
+    Q_n[N] <- as.numeric(sum(X) >= z_ag)
+
+    Q_n
+  }
+
+  #-------------------------------------------------------------------------------
+  ## Comparisons
+  #-------------------------------------------------------------------------------
+
+  compare_tests <- function(N, z_ag) {
     results <- vector("list", length(p_t_true_grid))
     for (g in seq_along(p_t_true_grid)) {
       print(g)
@@ -65,7 +118,7 @@ get_seq_test_comp_RCT <- function(B = 500,
 
       # Storage
       HCP_res <- matrix(NA_real_, nrow = B, ncol = 2)
-      HOLM_res <- matrix(NA_real_, nrow = B, ncol = 2)
+      HW_res <- matrix(NA_real_, nrow = B, ncol = 2)
       GS_res <- matrix(NA_real_, nrow = B, ncol = 2)
       n_sprt <- length(sprt_grid)
       SPRT_res <- matrix(NA_real_, nrow = B, ncol = 2 * n_sprt + 2)
@@ -86,11 +139,11 @@ get_seq_test_comp_RCT <- function(B = 500,
             alpha = alpha
           )
 
-          # HOLMES
-          HOLM <- run_holmes_test(
+          # HW
+          HW <- run_HW_test(
             N = N,
             X = X,
-            sample_data_null = function(N) sample_patient(N, p_c),
+            calc_q_n = calc_q_n,
             gamma = gamma,
             quanti = z_ag,
             B = B1
@@ -136,13 +189,12 @@ get_seq_test_comp_RCT <- function(B = 500,
             alphas = alphas,
             n_looks = n_looks,
             X = X,
-            sd0 = sd0,
             m_0 = m_0
           )
 
           list(
             HCP = HCP,
-            HOLM = HOLM,
+            HW = HW,
             SPRT = SPRT,
             GS = GS
           )
@@ -156,11 +208,11 @@ get_seq_test_comp_RCT <- function(B = 500,
       )
       colnames(HCP_res) <- c("Reject", "ESS")
 
-      HOLM_res <- do.call(
+      HW_res <- do.call(
         rbind,
-        lapply(sim_results, `[[`, "HOLM")
+        lapply(sim_results, `[[`, "HW")
       )
-      colnames(HOLM_res) <- c("Reject", "ESS")
+      colnames(HW_res) <- c("Reject", "ESS")
 
       SPRT_res <- do.call(
         rbind,
@@ -188,8 +240,8 @@ get_seq_test_comp_RCT <- function(B = 500,
       out <- list(p_t_true = p_t_true,
                   HCP_power = mean(HCP_res[, "Reject"]),
                   HCP_ESS   = mean(HCP_res[, "ESS"]),
-                  HOLM_power = mean(HOLM_res[, "Reject"]),
-                  HOLM_ESS   = mean(HOLM_res[, "ESS"]),
+                  HW_power = mean(HW_res[, "Reject"]),
+                  HW_ESS   = mean(HW_res[, "ESS"]),
                   GS_power = mean(GS_res[, "Reject"]),
                   GS_ESS   = mean(GS_res[, "ESS"]))
 
@@ -214,8 +266,8 @@ get_seq_test_comp_RCT <- function(B = 500,
     workers = parallel::detectCores() - 1
   )
 
-  res <- compare_tests(N)
-  res1 <- compare_tests(N1)
+  res <- compare_tests(N = N, z_ag = z_ag)
+  res1 <- compare_tests(N = N1, z_ag = z_ag1)
   df <- res
   df1 <- res1
 
@@ -226,9 +278,12 @@ get_seq_test_comp_RCT <- function(B = 500,
     x <- gsub("$", ")", x)
 
     x <- gsub("HCP_ESS)", "HCP", x)
-    x <- gsub("HOLM_ESS)", "HOLM", x)
+    x <- gsub("HW_ESS)", "HW", x)
+    x <- gsub("GS_ESS)", "GS", x)
+
     x <- gsub("HCP_power)", "HCP", x)
-    x <- gsub("HOLM_power)", "HOLM", x)
+    x <- gsub("HW_power)", "HW", x)
+    x <- gsub("GS_power)", "GS", x)
 
     x
   }
@@ -240,7 +295,8 @@ get_seq_test_comp_RCT <- function(B = 500,
   power_df <- bind_rows(res, res1) |>
     pivot_longer(
       cols = c(HCP_power,
-               HOLM_power,
+               HW_power,
+               GS_power,
                starts_with("SPRT_power")),
       names_to = "Method",
       values_to = "Power"
@@ -251,13 +307,15 @@ get_seq_test_comp_RCT <- function(B = 500,
                aes(p_t_true, Power, colour = Method)) +
     geom_line() +
     facet_wrap(~Design, scales = "free_y") +
-    theme_minimal()
+    theme_minimal()+
+    labs(x = expression(p[t]))
 
   # ESS plot
   ESS_df <- bind_rows(res, res1) |>
     pivot_longer(
       cols = c(HCP_ESS,
-               HOLM_ESS,
+               HW_ESS,
+               GS_ESS,
                starts_with("SPRT_ESS")),
       names_to = "Method",
       values_to = "ESS"
@@ -268,7 +326,8 @@ get_seq_test_comp_RCT <- function(B = 500,
                aes(p_t_true, ESS, colour = Method)) +
     geom_line() +
     facet_wrap(~Design, scales = "free_y") +
-    theme_minimal()
+    theme_minimal()+
+    labs(x = expression(p[t]))
 
   return(list(df = df, df1 = df1, p2 = p2, p3 = p3))
 }

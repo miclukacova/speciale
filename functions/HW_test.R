@@ -1,17 +1,17 @@
 ######################################################
-######## A general version of the Holmes tes #########
+######## A general version of the HW-test ###########
 ######################################################
 
 # We assume the test statistic is a sum of data
 
-run_holmes_test <- function(N,
-                            X,
-                            sample_data_null = NULL,
-                            calc_q_n = NULL,
-                            gamma,
-                            quanti,
-                            B = 5000,
-                            return_Q_n = FALSE) {
+run_HW_test <- function(N,
+                        X,
+                        sample_data_null = NULL,
+                        calc_q_n = NULL,
+                        gamma,
+                        quanti,
+                        B = 5000,
+                        return_Q_n = FALSE) {
 
   if(is.null(calc_q_n)) {
 
@@ -26,7 +26,7 @@ run_holmes_test <- function(N,
     Q_n[N] <- as.numeric(sum(X) >= quanti)
 
   } else {
-    Q_n <- calc_q_n(X, N)
+    Q_n <- calc_q_n(X, N, quanti)
   }
 
   Reject = any(Q_n >= gamma)
@@ -53,12 +53,12 @@ if(Example){
   X <- rbinom(N, 1, m_true)
   sample_data_null <- function(N) rbinom(N, 1, m_0)
   z_ag <- qbinom(p = 1 - (alpha * gamma), size = N, prob = m_0)
-  calc_q_n <- function(X, N) {
+  calc_q_n <- function(X, N, z_ag) {
     1 - pbinom(q = z_ag - cumsum(X), size = seq(N-1, 0), prob = m_0)
   }
 
   # Run of test
-  run_holmes_test(N = N,
+  run_HW_test(N = N,
                   X = X,
                   sample_data_null = sample_data_null,
                   #calc_q_n = calc_q_n,
@@ -89,7 +89,7 @@ if(plot_process){
   # Run of test
   simulate_path <- function(m_true) {
     X <- rbinom(N, 1, m_true)
-    run_holmes_test(N = N,
+    run_HW_test(N = N,
                     X = X,
                     return_Q_n = TRUE,
                     calc_q_n = calc_q_n,

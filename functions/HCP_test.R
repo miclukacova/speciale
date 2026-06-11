@@ -33,9 +33,9 @@ HCP <- function(m_0, c, X, theta, alpha) {
 run_HCP_test <- function(m_0, c, X, theta, alpha) {
   HCP_res <- HCP(m_0, c, X, theta, alpha)
   test_res <- HCP_res > 1/ alpha
-  test_fut <- HCP_res < alpha / 2
-  if(any(test_res) | any(test_fut)){
-    ESS <- which((test_res + test_fut) == 1)[1]
+  #test_fut <- HCP_res < alpha / 2
+  if(any(test_res)){         #| any(test_fut)
+    ESS <- which((test_res) == 1)[1]           # + test_fut
   } else {
     ESS <- length(HCP_res)
   }

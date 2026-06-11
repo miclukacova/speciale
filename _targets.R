@@ -80,9 +80,17 @@ list(
     command = get_NP_vs_SPRT_vs_GS()
   ),
   # Comparing sequential test in a Bernoulli or RCT setting
+  # OBS: der er en warning her som jeg virkelig ikke forstår!!
   tar_target(
-    name = seq_test_comp_RCT,
-    command = get_seq_test_comp_RCT(B = 500, B1 = 500)),
+    name = seq_test_comp_RCT_p_t,
+    command = get_seq_test_comp_RCT_p_t(B = 1000,
+                                        B1 = 1000,
+                                        N = 100,
+                                        N1 = 200)),
+  tar_target(
+    name = seq_test_comp_RCT_N,
+    command = get_seq_test_comp_RCT_N(B = 2000,
+                                      B1 = 2000)),
   tar_target(
     name = seq_test_comp_bern,
     command = get_seq_test_comp_bern()

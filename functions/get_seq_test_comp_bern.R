@@ -4,7 +4,7 @@
 if(FALSE){
   source("~/Desktop/Uni/Speciale/speciale/functions/GS_test.R")
   source("~/Desktop/Uni/Speciale/speciale/functions/HCP_test.R")
-  source("~/Desktop/Uni/Speciale/speciale/functions/Holmes_test.R")
+  source("~/Desktop/Uni/Speciale/speciale/functions/HW_test.R")
   source("~/Desktop/Uni/Speciale/speciale/functions/SPRT.R")
 }
 
@@ -18,12 +18,12 @@ get_seq_test_comp_bern <- function() {
   m_0 = 0.5
   m_1 = 0.65
   N = 300
-  c = 1 / 2
-  theta = 3 / 4
+  c = 3 / 4
+  theta = 1
   B = 10^4
   gamma = 0.9
 
-  # The optimal N for the Holmes test
+  # The optimal N for the HW test
   N1 <- 50
   pow <- 0
   while(pow < 1 - alpha) {
@@ -60,7 +60,7 @@ get_seq_test_comp_bern <- function() {
                         nrow = B,
                         ncol = 2,
                         dimnames = list(NULL, c("Reject", "ESS")))
-      HOLM_res <- HCP_res
+      HW_res <- HCP_res
       n_sprt <- length(m1_grid)
       SPRT_res <- matrix(NA_real_,
                          nrow = B,
@@ -82,12 +82,12 @@ get_seq_test_comp_bern <- function() {
                                      theta = theta,
                                      alpha = alpha)
 
-        # HOLMES
+        # HW
         z_ag <- qbinom(p = 1 - (alpha * gamma), size = N, prob = m_0)
-        calc_q_n <- function(X, N) {
+        calc_q_n <- function(X, N, z_ag) {
           1 - pbinom(q = z_ag - cumsum(X), size = seq(N-1, 0), prob = m_0)
         }
-        HOLM_res[b, ] <- run_holmes_test(N = N,
+        HW_res[b, ] <- run_HW_test(N = N,
                                          X = X,
                                          calc_q_n = calc_q_n,
                                          gamma = gamma,
@@ -119,8 +119,8 @@ get_seq_test_comp_bern <- function() {
       # ----------------------------
 
       out <- list(m_true = m_true, HCP_power = mean(HCP_res[, "Reject"]),
-                  HCP_ESS   = mean(HCP_res[, "ESS"]), HOLM_power = mean(HOLM_res[, "Reject"]),
-                  HOLM_ESS   = mean(HOLM_res[, "ESS"]))
+                  HCP_ESS   = mean(HCP_res[, "ESS"]), HW_power = mean(HW_res[, "Reject"]),
+                  HW_ESS   = mean(HW_res[, "ESS"]))
 
       for (j in seq_along(m1_grid)) {
         out[[paste0("SPRT_power_", m1_grid[j])]] <- mean(SPRT_res[, paste0("Reject_", m1_grid[j])])
@@ -149,9 +149,9 @@ get_seq_test_comp_bern <- function() {
     x <- gsub("$", ")", x)
 
     x <- gsub("HCP_ESS)", "HCP", x)
-    x <- gsub("HOLM_ESS)", "HOLM", x)
+    x <- gsub("HW_ESS)", "HW", x)
     x <- gsub("HCP_power)", "HCP", x)
-    x <- gsub("HOLM_power)", "HOLM", x)
+    x <- gsub("HW_power)", "HW", x)
 
     x
   }
@@ -163,7 +163,7 @@ get_seq_test_comp_bern <- function() {
   power_df <- bind_rows(res, res1) |>
     pivot_longer(
       cols = c(HCP_power,
-               HOLM_power,
+               HW_power,
                starts_with("SPRT_power")),
       names_to = "Method",
       values_to = "Power"
@@ -180,7 +180,7 @@ get_seq_test_comp_bern <- function() {
   ESS_df <- bind_rows(res, res1) |>
     pivot_longer(
       cols = c(HCP_ESS,
-               HOLM_ESS,
+               HW_ESS,
                starts_with("SPRT_ESS")),
       names_to = "Method",
       values_to = "ESS"

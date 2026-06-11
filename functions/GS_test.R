@@ -34,7 +34,7 @@ gs_run <- function(Nmax, alphas, n_looks, X, sd0, m_0) {
   # Sample size
   n <-  look_times[min(which(test_res), n_looks)]
 
-  c(Reject = any(test_res[1:n]), ESS = n)
+  c(Reject = any(test_res), ESS = n)
 
 }
 
