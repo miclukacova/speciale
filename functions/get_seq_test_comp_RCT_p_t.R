@@ -18,7 +18,7 @@ get_seq_test_comp_RCT_p_t <- function(B = 500,
   sprt_grid <- c(0.45, 0.6)
   p_c <- 0.3
   m_0 = 1 / 2
-  c = 0.5
+  c = 3 / 4
   theta = 1
   alpha = 0.05
   gamma = 0.9

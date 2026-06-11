@@ -16,7 +16,7 @@ get_seq_test_comp_RCT_N <- function(B = 1000,
   p_t_values <- c(0.45, 0.60)
   p_c <- 0.3
   m_0 = 1 / 2
-  c = 0.5
+  c = 3 / 4
   theta = 1
   alpha = 0.05
   gamma = 0.9
