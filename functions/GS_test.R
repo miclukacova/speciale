@@ -4,7 +4,7 @@
 
 ## To do employ this test
 
-gs_run <- function(Nmax, alphas, n_looks, X, sd0, m_0) {
+gs_run <- function(Nmax, alphas, n_looks, X, m_0) {
 
   # Information times / looks
   look_times <- round(seq(Nmax / n_looks, Nmax, length.out = n_looks))
@@ -24,8 +24,11 @@ gs_run <- function(Nmax, alphas, n_looks, X, sd0, m_0) {
     # Cumulative means
     Xbar_k <- mean(X_k) - m_0
 
+    # Cumulative variance estimate
+    sigma_hat_k <- sqrt(1 / (n_k - 1) * sum((X_k - Xbar_k)^2))
+
     # Z_k_star
-    Z_k_star[k] <- Xbar_k / sd0 * sqrt(look_times[k])
+    Z_k_star[k] <- Xbar_k / sigma_hat_k * sqrt(look_times[k])
   }
 
   # Boundary crossing
