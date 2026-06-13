@@ -23,13 +23,12 @@ get_seq_test_comp_RCT_p_t <- function(B = 500,
   alpha = 0.05
   gamma = 0.9
   n_looks = 4
-  alphas = alphas_soko(p_c, n_looks, Nmax = N, B = B, alpha = alpha)
 
   # GST
-  #alphas <- rpact::getDesignGroupSequential(kMax = 4,
-  #                                          alpha = alpha,
-  #                                          sided = 1,
-  #                                          typeOfDesign = "OF")$criticalValues
+  alphas <- rpact::getDesignGroupSequential(kMax = n_looks,
+                                            alpha = alpha,
+                                            sided = 1,
+                                            typeOfDesign = "OF")$criticalValues
 
   # Data sampling function
   sample_patient <- function(N, p_t) {
@@ -46,7 +45,7 @@ get_seq_test_comp_RCT_p_t <- function(B = 500,
     N <- length(X)
     cum_mean <- c(0.5, cumsum(X[-N]) / seq_len(N-1))
     p_t <- 2 * cum_mean - 1 + p_c
-    p_t <- pmin(pmax(p_t, 0.1), 0.98)
+    p_t <- pmin(pmax(p_t, 0.001), 0.999)
     p_t * (1 - p_c) * (X == 1) +  (1 - p_t) * p_c * (X == 0) + (X == (1 / 2)) * ((1 - p_t) * (1 - p_c) + p_t * p_c)
   }
 

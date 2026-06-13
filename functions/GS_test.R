@@ -22,13 +22,13 @@ gs_run <- function(Nmax, alphas, n_looks, X, m_0) {
     X_k <- X[1:look_times[k]]
 
     # Cumulative means
-    Xbar_k <- mean(X_k) - m_0
+    Xbar_k <- mean(X_k)
 
     # Cumulative variance estimate
-    sigma_hat_k <- sqrt(1 / (n_k - 1) * sum((X_k - Xbar_k)^2))
+    sigma_hat_k <- sqrt(1 / (look_times[k] - 1) * sum((X_k - Xbar_k)^2))
 
     # Z_k_star
-    Z_k_star[k] <- Xbar_k / sigma_hat_k * sqrt(look_times[k])
+    Z_k_star[k] <- (Xbar_k - m_0) / sigma_hat_k * sqrt(look_times[k])
   }
 
   # Boundary crossing

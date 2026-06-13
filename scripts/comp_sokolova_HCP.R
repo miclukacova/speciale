@@ -157,7 +157,7 @@ print(type1_summary)
 ############################################################
 
 alt_grid <- tibble(
-  p_t = seq(0.50, 0.75, by = 0.05)
+  p_t = seq(0.35, 0.6, by = 0.05)
 )
 
 power_results <-
