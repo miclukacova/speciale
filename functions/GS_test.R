@@ -4,7 +4,7 @@
 
 ## To do employ this test
 
-gs_run <- function(Nmax, alphas, n_looks, X, m_0) {
+gs_run <- function(Nmax, alphas, n_looks, X, m_0, side = 1, sigmaUnknown = TRUE) {
 
   # Information times / looks
   look_times <- round(seq(Nmax / n_looks, Nmax, length.out = n_looks))
@@ -25,15 +25,20 @@ gs_run <- function(Nmax, alphas, n_looks, X, m_0) {
     Xbar_k <- mean(X_k)
 
     # Cumulative variance estimate
-    sigma_hat_k <- sqrt(1 / (look_times[k] - 1) * sum((X_k - Xbar_k)^2))
+    if(sigmaUnknown) sigma_hat_k <- sqrt(1 / (look_times[k] - 1) * sum((X_k - Xbar_k)^2))
+    else sigma_hat_k <- sigmaUnknown
     if(sigma_hat_k == 0) warning("Variance estimate is 0")
 
     # Z_k_star
     Z_k_star[k] <- (Xbar_k - m_0) / sigma_hat_k * sqrt(look_times[k])
   }
 
+  # If we do not know sigma, we need to correct with the t distribution
+  if(sigmaUnknown) alphas <- qt(p = pnorm(alphas), df = look_times - 1)
+
   # Boundary crossing
-  test_res <- Z_k_star >= alphas
+  if(side == 2) test_res <- abs(Z_k_star) >= alphas
+  else test_res <- Z_k_star >= alphas
 
   # Sample size
   n <-  look_times[min(which(test_res), n_looks)]
