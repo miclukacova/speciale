@@ -306,8 +306,9 @@ get_seq_test_comp_RCT_p_t <- function(B = 500,
                aes(p_t_true, Power, colour = Method)) +
     geom_line() +
     facet_wrap(~Design, scales = "free_y") +
-    theme_minimal()+
-    labs(x = expression(p[t]))
+    theme_minimal() +
+    labs(x = expression(p[t])) +
+    geom_hline(aes(yintercept = alpha), linetype = 2)
 
   # ESS plot
   ESS_df <- bind_rows(res, res1) |>

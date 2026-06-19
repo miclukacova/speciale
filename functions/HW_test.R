@@ -2,7 +2,7 @@
 ######## A general version of the HW-test ###########
 ######################################################
 
-# We assume the test statistic is a sum of data
+# sample_data_null should return the bootstrapped test statistic
 
 run_HW_test <- function(N,
                         X,
@@ -10,20 +10,19 @@ run_HW_test <- function(N,
                         calc_q_n = NULL,
                         gamma,
                         quanti,
-                        B = 5000,
+                        B = 1000,
                         return_Q_n = FALSE) {
 
   if(is.null(calc_q_n)) {
 
-    Q_n <- vector()
-    i <- 1
+    Q_n <- vector(length = N)
+    i <- 2
     while(i <= (N-1) & all(Q_n < gamma)) {
-      boot_data <- replicate(B, sample_data_null(N - i))
-      if(is.vector(boot_data)) Q_n[i] <- mean(boot_data >= quanti - sum(X[1:i]))
-      else Q_n[i] <- mean(colSums(boot_data) > quanti - sum(X[1:i]))
+      boot_data <- replicate(B, sample_data_null(N = N - i, X = X[1:i]))
+      Q_n[i] <- mean(boot_data >= quanti)
       i <- i + 1
     }
-    Q_n[N] <- as.numeric(sum(X) >= quanti)
+    Q_n[N] <- sample_data_null(N = N, X = X) > quanti
 
   } else {
     Q_n <- calc_q_n(X, N, quanti)
@@ -51,7 +50,10 @@ if(Example){
 
   # Data sampling function, quantile, function to calculate Q_n
   X <- rbinom(N, 1, m_true)
-  sample_data_null <- function(N) rbinom(N, 1, m_0)
+  sample_data_null <- function(N, X) {
+    X_boot <- rbinom(N, 1, m_0)
+    return(sum(X, X_boot))
+  }
   z_ag <- qbinom(p = 1 - (alpha * gamma), size = N, prob = m_0)
   calc_q_n <- function(X, N, z_ag) {
     1 - pbinom(q = z_ag - cumsum(X), size = seq(N-1, 0), prob = m_0)

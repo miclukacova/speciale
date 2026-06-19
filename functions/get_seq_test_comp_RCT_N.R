@@ -12,7 +12,7 @@ get_seq_test_comp_RCT_N <- function(B = 1000,
                                     B1 = 1000) {
 
   # Parameters
-  N_grid <- seq(8, 200, by = 4)
+  N_grid <- seq(40, 200, by = 4)
   p_t_values <- c(0.45, 0.60)
   p_c <- 0.3
   m_0 = 1 / 2

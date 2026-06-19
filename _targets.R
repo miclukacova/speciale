@@ -12,6 +12,7 @@ tar_source("functions")
 
 # Replace the target list below with your own:
 list(
+  # Stability
   tar_target(
     name = OLS_risk,
     command = get_OLS_risk(tau = 0.5,
@@ -62,6 +63,7 @@ list(
                                     B = 10^4,
                                     N = 2500,
                                     n = 500)),
+  # E-variable
   tar_target(
     name = e_vs_p_power_data,
     command = get_e_vs_p_power(alphas = c(0.001, 0.01, 0.05, 0.08),
@@ -74,24 +76,45 @@ list(
   tar_target(
     name = e_vs_p_power_plot,
     command = get_e_vs_p_power_plot(e_vs_p_power_data)),
-
+  # Neyman-Pearson test compared to the SPRT and the GS
   tar_target(
     name = NP_vs_SPRT_vs_GS,
     command = get_NP_vs_SPRT_vs_GS()
   ),
+
   # Comparing sequential test in a Bernoulli or RCT setting
-  # OBS: der er en warning her som jeg virkelig ikke forstår!!
   tar_target(
     name = seq_test_comp_RCT_p_t,
-    command = get_seq_test_comp_RCT_p_t(B = 1000,
-                                        B1 = 1000,
+    command = get_seq_test_comp_RCT_p_t(B = 10^2,
+                                        B1 = 10^2,
                                         N = 100,
                                         N1 = 200)),
   tar_target(
     name = seq_test_comp_RCT_N,
-    command = get_seq_test_comp_RCT_N(B = 2000,
-                                      B1 = 2000)),
+    command = get_seq_test_comp_RCT_N(B = 10^2,
+                                      B1 = 10^2)),
   tar_target(
     name = seq_test_comp_bern,
     command = get_seq_test_comp_bern()
-  ))
+  ),
+  # Comparing sequential testing in a normal example
+  tar_target(
+    name = seq_test_comp_RCT_norm,
+    command = get_seq_test_comp_RCT_norm(B = 10^2,
+                                         N = 100,
+                                         N1 = 200,
+                                         Sigma = matrix(c(1,0,0,1), ncol = 2),
+                                         side = 2)
+  ),
+  # Comparing sequential testing in a normal example with unknown variance
+  tar_target(
+    name = seq_test_comp_RCT_norm,
+    command = get_seq_test_comp_RCT_norm(B = 10^2,
+                                         N = 100,
+                                         N1 = 200,
+                                         Sigma = matrix(c(1,0.4,0.4,2), ncol = 2),
+                                         side = 2,
+                                         sigmaUnknown = TRUE)
+  )
+  )
+

@@ -26,6 +26,7 @@ gs_run <- function(Nmax, alphas, n_looks, X, m_0) {
 
     # Cumulative variance estimate
     sigma_hat_k <- sqrt(1 / (look_times[k] - 1) * sum((X_k - Xbar_k)^2))
+    if(sigma_hat_k == 0) warning("Variance estimate is 0")
 
     # Z_k_star
     Z_k_star[k] <- (Xbar_k - m_0) / sigma_hat_k * sqrt(look_times[k])
