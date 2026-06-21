@@ -85,14 +85,14 @@ list(
   # Comparing sequential test in a Bernoulli or RCT setting
   tar_target(
     name = seq_test_comp_RCT_p_t,
-    command = get_seq_test_comp_RCT_p_t(B = 10^2,
-                                        B1 = 10^2,
+    command = get_seq_test_comp_RCT_p_t(B = 10^4,
+                                        B1 = 10^4,
                                         N = 100,
                                         N1 = 200)),
   tar_target(
     name = seq_test_comp_RCT_N,
-    command = get_seq_test_comp_RCT_N(B = 10^2,
-                                      B1 = 10^2)),
+    command = get_seq_test_comp_RCT_N(B = 10^4,
+                                      B1 = 10^4)),
   tar_target(
     name = seq_test_comp_bern,
     command = get_seq_test_comp_bern()
@@ -100,7 +100,7 @@ list(
   # Comparing sequential testing in a normal example
   tar_target(
     name = seq_test_comp_RCT_norm,
-    command = get_seq_test_comp_RCT_norm(B = 10^2,
+    command = get_seq_test_comp_RCT_norm(B = 10^4,
                                          N = 100,
                                          N1 = 200,
                                          Sigma = matrix(c(1,0,0,1), ncol = 2),
@@ -108,13 +108,14 @@ list(
   ),
   # Comparing sequential testing in a normal example with unknown variance
   tar_target(
-    name = seq_test_comp_RCT_norm,
-    command = get_seq_test_comp_RCT_norm(B = 10^2,
+    name = seq_test_comp_RCT_norm_unknown_sigma,
+    command = get_seq_test_comp_RCT_norm(B = 10^4,
                                          N = 100,
                                          N1 = 200,
                                          Sigma = matrix(c(1,0.4,0.4,2), ncol = 2),
                                          side = 2,
-                                         sigmaUnknown = TRUE)
+                                         sigmaUnknown = TRUE,
+                                         burnin = 10)
   )
   )
 

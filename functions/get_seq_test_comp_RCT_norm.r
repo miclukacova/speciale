@@ -5,7 +5,7 @@ if(FALSE){
   source("~/Desktop/Uni/Speciale/speciale/functions/GS_test.R")
   source("~/Desktop/Uni/Speciale/speciale/functions/HCP_test.R")
   source("~/Desktop/Uni/Speciale/speciale/functions/HW_test.R")
-  source("~/Desktop/Uni/Speciale/speciale/functions/unif_inf_e.R")
+  source("~/Desktop/Uni/Speciale/speciale/functions/UIE_test.R")
 }
 
 get_seq_test_comp_RCT_norm <- function(B = 500,
@@ -13,7 +13,8 @@ get_seq_test_comp_RCT_norm <- function(B = 500,
                                        N1 = 200,
                                        Sigma = matrix(c(1,0,0,1), ncol = 2),
                                        side = 2,
-                                       sigmaUnknown = FALSE) {
+                                       sigmaUnknown = FALSE,
+                                       burnin = NULL) {
 
   # Parameters
   m_t_true_grid <- seq(0.1, 0.7, by = 0.05)
@@ -38,7 +39,7 @@ get_seq_test_comp_RCT_norm <- function(B = 500,
 
   # Estimator of density in the null
   f0_estimator <- function(X, i) {
-    if(is.vector(X)) {
+    if(length(X) < 5) {
       mu_est <- mean(c(X[1], X[2]))
       return(mvtnorm::dmvnorm(X, mean = c(mu_est, mu_est), sigma = matrix(c(1,0,0,1), ncol = 2)))
     }
@@ -50,7 +51,7 @@ get_seq_test_comp_RCT_norm <- function(B = 500,
         Sigma_est <- matrix(c(sigma2_est1, covar, covar, sigma2_est0), ncol = 2)
     }
     else Sigma_est <- Sigma
-    mu_est <- mean(c(X[,1], X[,2]))
+    mu_est <- mean(X)
     mvtnorm::dmvnorm(X, mean = c(mu_est, mu_est), sigma = Sigma_est)
   }
 
@@ -164,7 +165,8 @@ get_seq_test_comp_RCT_norm <- function(B = 500,
               X = X,
               f0_estimator = f0_estimator,
               f1_estimator = f1_estimator,
-              alpha = alpha
+              alpha = alpha,
+              burnin = burnin
             )
 
           # GS

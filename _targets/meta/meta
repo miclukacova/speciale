@@ -30,47 +30,24 @@ sprt_run|function|c56fc164ef22704e
 run_scenario|function|dbdde027da01d1f4
 get_sokolova_data|function|09de02f857a00603
 l_q_stability_data|stem|92dc361c111abfa6|c64dbceaac3fe415|40b2ccd8526a94b2|-1088987312||t20571.5610973537s||294|rds|local|vector|||0.005||could not find function 'get_l_q_stability_data'
-seq_test_comp_bern|stem|2b7a0c0452facc76|e8b3a3b6222f0b9e|5f0d0addb0eea650|-734377565||t20613.3114935162s|s664209b|664209|rds|local|vector|||39.105|package ‘rpact’ was built under R version 4.4.3|
 get_seq_test_comp_RCT|function|e17cb0f912429912
 seq_test_comp_RCT|stem|86325c87721d43c0|072ad6dc10d16bfc|6cbc115b3512b6c6|455244547||t20614.4158341364s|s672088b|672088|rds|local|vector|||68029.406|package ‘rpact’ was built under R version 4.4.3|
-seq_test_comp_RCT_p_t|stem|6f57fa4c2c27baab|0cdde34207bda135|983fbd1a0921cebd|119195561||t20614.7285176632s|s672558b|672558|rds|local|vector|||12611.434|package ‘rpact’ was built under R version 4.4.3|
-get_e_vs_p_power|function|0c5ea406d9201ae0
-gs_run|function|191231392ab3dc0b
-loss_bin|function|42bfb90a330e9b16
-beta|object|0f9a722c61834b89
-alphas_soko|function|9c36fafc1986bb81
-get_OLS_risk|function|188431804916328d
-lm_alg|function|aefb2d116f064aa4
-get_e_vs_p_power_plot|function|bb01ea0b16bcef9a
 run_holmes_test|function|5e343f5be265ede1
-run_sprt_test|function|02eb7bf838aa3102
-get_cv_test_plot|function|6289360e8d05f833
-get_OLS_rej_prob_plot|function|68b987ea6d70656e
-calculate_lambda_tilde|function|353ed29565acd4d9
-Example|object|cc6a331fb3c0077c
-get_rina_bb_test_plot|function|9ea6407fa7bd10a5
-get_NP_vs_SPRT_vs_GS|function|269ff79af725848d
-get_OLS_plot_risk|function|b57ed3a02cac9919
-loss_sq_error|function|1fa4b90194237e90
-plot_process|object|cc6a331fb3c0077c
-get_alg_rej_prob|function|4179f188eecd289c
-get_rina_bb_test_data|function|3482d8dae331ae1f
-get_cv_test_data|function|eb2bc5aa504993b3
-HCP|function|1bc9fc6eab2db04b
-run_HCP_test|function|64509e4aed08f7bd
-get_seq_test_comp_bern|function|8315f59355f85a9b
-get_seq_test_comp_RCT_p_t|function|df7a980ca73c7897
-get_seq_test_comp_RCT_N|function|cacae5a40d952d69
-seq_test_comp_RCT_N|stem|07e913fef3ac9c99|5f8951659b3cd134|b0a683611ba7a706|594183503||t20615.3524348442s|s720111b|720111|rds|local|vector|||43608.807|package ‘rpact’ was built under R version 4.4.3|
+get_seq_test_comp_RCT_norm_p_t|function|186cd7e2a476c3cb
+seq_test_comp_norm|stem||22b89ad97ea6bd0d|2c530c1562a7fbd1|-298891752||t20621.5733402637s||0|rds|local|vector|||0.45|package ‘rpact’ was built under R version 4.4.3|could not find function 'get_seq_test_RCT_norm'
+seq_test_comp_RCT_p_t|stem|b4057107a4b34ef9|bd27e9f11c00f3c6|978a38bbdc8d4806|119195561||t20623.8068540695s|s678781b|678781|rds|local|vector|||8459.418|package ‘rpact’ was built under R version 4.4.3|
+seq_test_comp_RCT_N|stem|678c4d23138969ef|136199f4d4e8887d|d27c807f7c196390|594183503||t20623.8516914959s|s701470b|701470|rds|local|vector|||3873.721|Variance estimate is 0|
+seq_test_comp_bern|stem|45e15bff2776b11f|e8b3a3b6222f0b9e|09af5eeccb821b57|-734377565||t20623.8597043258s|s664245b|664245|rds|local|vector|||38.309||
 get_e_vs_p_power|function|0c5ea406d9201ae0
-gs_run|function|191231392ab3dc0b
+UIE|function|e5397a08c01b4f16
+gs_run|function|2dcdd0daf0095f0f
 loss_bin|function|42bfb90a330e9b16
 beta|object|0f9a722c61834b89
 alphas_soko|function|9c36fafc1986bb81
 get_OLS_risk|function|188431804916328d
 lm_alg|function|aefb2d116f064aa4
 get_e_vs_p_power_plot|function|bb01ea0b16bcef9a
-run_HW_test|function|e0d42fd991f1416b
+run_HW_test|function|6cf6629bf85ca22a
 run_sprt_test|function|6447f4b8fdef6c4c
 get_cv_test_plot|function|6289360e8d05f833
 get_OLS_rej_prob_plot|function|68b987ea6d70656e
@@ -78,15 +55,18 @@ calculate_lambda_tilde|function|353ed29565acd4d9
 Example|object|cc6a331fb3c0077c
 get_rina_bb_test_plot|function|9ea6407fa7bd10a5
 get_NP_vs_SPRT_vs_GS|function|269ff79af725848d
-get_OLS_plot_risk|function|b57ed3a02cac9919
 loss_sq_error|function|1fa4b90194237e90
+get_OLS_plot_risk|function|b57ed3a02cac9919
 plot_process|object|cc6a331fb3c0077c
+UIE_test|function|10c22c8e14fbf110
 get_alg_rej_prob|function|4179f188eecd289c
 get_rina_bb_test_data|function|3482d8dae331ae1f
 get_cv_test_data|function|eb2bc5aa504993b3
 HCP|function|1bc9fc6eab2db04b
 run_HCP_test|function|658a1f75877b7627
-get_seq_test_comp_bern|function|56b795382caad39f
-get_seq_test_comp_RCT_p_t|function|cf161c50839b50c6
-get_seq_test_comp_RCT_N|function|9a96b8d3b91ba6c7
-seq_test_comp_RCT_p_t|stem|72b92642db82944f|0cdde34207bda135|e54b4dff9d3793ab|119195561||t20615.4632966788s|s676789b|676789|rds|local|vector|||4912.459|package ‘rpact’ was built under R version 4.4.3|
+get_seq_test_comp_bern|function|9e66b3c29655f35c
+get_seq_test_comp_RCT_norm|function|77c616f2cf652dd6
+get_seq_test_comp_RCT_p_t|function|6ff1d0248659ecbb
+get_seq_test_comp_RCT_N|function|9f37f7d0f6a8e9c0
+seq_test_comp_RCT_norm|stem|4dc829b702800da5|1106673da4ea54c7|22272a930fe27428|-945112895||t20625.6166503881s|s676269b|676269|rds|local|vector|||29.459|package ‘rpact’ was built under R version 4.4.3|
+seq_test_comp_RCT_norm_unknown_sigma|stem|7e3cd2a4b3b12135|6f0f6fb5cdf97b50|22272a930fe27428|-1306752126||t20623.8592587099s||674878|rds|local|vector|||2.281||UIE(f1) is 0
