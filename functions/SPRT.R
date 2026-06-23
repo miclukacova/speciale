@@ -7,10 +7,10 @@ run_sprt_test <- function(N, X, f0, f1, beta, alpha) {
   gamma0 <- beta / (1 - alpha)
   gamma1 <- (1 - alpha) / beta
 
-  L <- cumprod(f1(X) / f0(X))
-  ss <- min(which(L >= gamma1 | gamma0 >= L), N)
+  logL <- cumsum(log(f1(X)) - log(f0(X)))
+  ss <- min(which(logL >= log(gamma1) | log(gamma0) >= logL), N)
 
-  return(c(L[ss] >= gamma1, ss))
+  return(c(logL[ss] >= log(gamma1), ss))
 }
 
 # Example run

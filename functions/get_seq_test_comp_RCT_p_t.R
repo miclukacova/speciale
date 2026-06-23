@@ -9,12 +9,11 @@ if(FALSE){
 }
 
 get_seq_test_comp_RCT_p_t <- function(B = 500,
-                                      B1 = 500,
                                       N = 100,
                                       N1 = 200) {
 
   # Parameters
-  p_t_true_grid <- seq(0.3, 0.62, by = 0.04)
+  p_t_true_grid <- seq(0.3, 0.62, by = 0.02)
   sprt_grid <- c(0.45, 0.6)
   p_c <- 0.3
   m_0 = 1 / 2
@@ -45,10 +44,26 @@ get_seq_test_comp_RCT_p_t <- function(B = 500,
     N <- length(X)
     cum_mean <- c(0.5, cumsum(X[-N]) / seq_len(N-1))
     p_t <- 2 * cum_mean - 1 + p_c
-    p_t <- pmin(pmax(p_t, 0.001), 0.999)
+    p_t <- pmin(pmax(p_t, 0.0001), 0.9999)
     p_t * (1 - p_c) * (X == 1) +  (1 - p_t) * p_c * (X == 0) + (X == (1 / 2)) * ((1 - p_t) * (1 - p_c) + p_t * p_c)
   }
 
+  # List of
+
+  f1_list <- lapply(sprt_grid, function(p_alt){
+
+    function(X){
+
+      ind1 <- (X == 1)
+      ind0 <- (X == 0)
+      indh <- (X == 1/2)
+
+      ind1 * p_alt * (1 - p_c) +
+        ind0 * (1 - p_alt) * p_c +
+        indh * ((1 - p_alt) * (1 - p_c) + p_alt * p_c)
+    }
+
+  })
 
   # -----------------------------------------------------------
   # Precompute HW critical values and Q_n calculating function
@@ -70,12 +85,23 @@ get_seq_test_comp_RCT_p_t <- function(B = 500,
     pmf
   }
 
+  # Precompute the pmf and tail probabilities in order to avoid repeated computations
+  maxN <- max(N, N1)
+  pmf_lookup <- vector("list", maxN)
+  tail_lookup <- vector("list", maxN)
+  for(k in 1:max(N, N1)){
+    pmf <- null_pmf(k)
+    pmf_lookup[[k]] <- pmf
+    # We compute the tail probabilities P(X >= x[k])
+    tail_lookup[[k]] <- rev(cumsum(rev(pmf)))
+  }
+
+  # Function to find quantiles
   z_ag_exact <- function(N){
     cdf <- cumsum(null_pmf(N))
     k <- which(cdf >= 1 - alpha * gamma)[1]
     (k - 1) / 2
   }
-
   z_ag <- z_ag_exact(N)
   z_ag1 <- z_ag_exact(N1)
 
@@ -83,18 +109,19 @@ get_seq_test_comp_RCT_p_t <- function(B = 500,
   calc_q_n <- function(X, N, z_ag){
 
     Q_n <- numeric(N)
+    sumX <- cumsum(X)
 
     for(i in seq_len(N-1)){
-      s_obs <- sum(X[1:i])
+      s_obs <- sumX[i]
+      # We find the threshold
       threshold <- z_ag - s_obs
-      pmf <- null_pmf(N-i)
-      support <- seq(
-        0,
-        by = 0.5,
-        length.out = length(pmf)
-      )
-      Q_n[i] <- sum(pmf[support >= threshold])
-
+      # We find the index in the support of sum_{n+1}^N X_i corresponding to the threshold
+      idx <- threshold * 2 + 1
+      # If the index exceeds the support, there is 0 probability that the fixed sample size test will reject
+      if(idx > (N - i) * 2 + 1) break
+      # We calculate the tail probability
+      tail_prob <- tail_lookup[[N-i]]
+      Q_n[i] <- tail_prob[idx]
       if(Q_n[i] >= gamma) break
     }
 
@@ -144,8 +171,7 @@ get_seq_test_comp_RCT_p_t <- function(B = 500,
             X = X,
             calc_q_n = calc_q_n,
             gamma = gamma,
-            quanti = z_ag,
-            B = B1
+            quanti = z_ag
           )
 
           # SPRTs
@@ -153,19 +179,11 @@ get_seq_test_comp_RCT_p_t <- function(B = 500,
 
           for (j in seq_along(sprt_grid)) {
 
-            f1 <- function(X) {
-              sprt_grid[j] * (1 - p_c) * (X == 1) +
-                (1 - sprt_grid[j]) * p_c * (X == 0) +
-                (X == 1 / 2) *
-                ((1 - sprt_grid[j]) * (1 - p_c) +
-                   sprt_grid[j] * p_c)
-            }
-
             SPRT[(2 * j - 1):(2 * j)] <- run_sprt_test(
               N,
               X = X,
               f0 = f0,
-              f1 = f1,
+              f1 = f1_list[[j]],
               beta = alpha,
               alpha = alpha
             )
@@ -259,6 +277,7 @@ get_seq_test_comp_RCT_p_t <- function(B = 500,
   }
 
   set.seed(37238493)
+
   # To parallelize
   future::plan(
     future::multisession,

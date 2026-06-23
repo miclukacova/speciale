@@ -38,45 +38,65 @@ get_seq_test_comp_RCT_norm <- function(B = 500,
   }
 
   # Estimator of density in the null
-  f0_estimator <- function(X, i) {
-    if(length(X) < 5) {
-      mu_est <- mean(c(X[1], X[2]))
-      return(mvtnorm::dmvnorm(X, mean = c(mu_est, mu_est), sigma = matrix(c(1,0,0,1), ncol = 2)))
+  log_f0 <- function(X, i) {
+    mu_est <- mean(X)
+    if(i < 3) {
+      if(sigmaUnknown) Sigma_est <- diag(2)
+      else Sigma_est <- Sigma
+      return(mvtnorm::dmvnorm(X, mean = c(mu_est, mu_est), sigma = Sigma_est, log = TRUE))
     }
 
     if(sigmaUnknown){
-        sigma2_est1 <- var(X[,1])
-        sigma2_est0 <- var(X[,2])
-        covar <- cov(X[,1], X[,2])
-        Sigma_est <- matrix(c(sigma2_est1, covar, covar, sigma2_est0), ncol = 2)
+      sigma2_est1 <- var(X[,1])
+      sigma2_est0 <- var(X[,2])
+      covar <- cov(X[,1], X[,2])
+
+      Sigma_est <- matrix(
+        c(sigma2_est1, covar,
+          covar, sigma2_est0),
+        ncol = 2
+      )
+    } else {
+      Sigma_est <- Sigma
     }
-    else Sigma_est <- Sigma
-    mu_est <- mean(X)
-    mvtnorm::dmvnorm(X, mean = c(mu_est, mu_est), sigma = Sigma_est)
+
+    mvtnorm::dmvnorm(
+      X,
+      mean = c(mu_est, mu_est),
+      sigma = Sigma_est,
+      log = TRUE
+    )
   }
 
+
   # Estimator of density in the alternative
-  f1_estimator <- function(X, init_m = 0.3, i) {
+  log_f1 <- function(X, init_m = 0.3, i) {
     if(sigmaUnknown){
-      if(i < 3) Sigma_est <- matrix(c(1,0,0,1), ncol = 2)
-      else {
+      if(i < 3){
+        Sigma_est <- diag(2)
+      } else {
         sigma2_est1 <- var(X[1:(i-1),1])
         sigma2_est0 <- var(X[1:(i-1),2])
         covar <- cov(X[1:(i-1),1], X[1:(i-1),2])
-        Sigma_est <- matrix(c(sigma2_est1, covar, covar, sigma2_est0), ncol = 2)
+        Sigma_est <- matrix(
+          c(sigma2_est1, covar,
+            covar, sigma2_est0),
+          ncol = 2
+        )
       }
-    }
-    else Sigma_est <- Sigma
 
-    if(is.vector(X)) {
-      return(mvtnorm::dmvnorm(X, mean = c(init_m, init_m), sigma = Sigma_est))
+    } else {
+      Sigma_est <- Sigma
     }
+    if(is.vector(X)){
+      return(mvtnorm::dmvnorm(X, mean = c(init_m, init_m), sigma = Sigma_est, log = TRUE))
+    }
+
     mu_est1 <- mean(X[1:(i-1),1])
     mu_est0 <- mean(X[1:(i-1),2])
 
-    mvtnorm::dmvnorm(X[i,], mean = c(mu_est1, mu_est0), sigma = Sigma_est)
+    mvtnorm::dmvnorm(X[i,,drop = FALSE], mean = c(mu_est1, mu_est0), sigma = Sigma_est, log = TRUE)
   }
-
 
   # -----------------------------------------------------------
   # Precompute HW critical values and Q_n calculating function
@@ -107,9 +127,10 @@ get_seq_test_comp_RCT_norm <- function(B = 500,
     z_agN <- qnorm(p = 1 - alpha * gamma / side, mean = 0, sd = sigma_D_N)
     z_agN1 <- qnorm(p = 1 - alpha * gamma / side, mean = 0, sd = sigma_D_N1)
 
+
+    sigmas <- sqrt(1 / N ^ 2 * (N - 1:N) * (Sigma[1,1] + Sigma[2,2] - 2 * Sigma[1,2]))
     calc_q_n <- function(X, N, z_ag) {
       meanss <- 1 / N * cumsum(X)
-      sigmas <- sqrt(1 / N ^ 2 * (N - 1:N) * (Sigma[1,1] + Sigma[2,2] - 2 * Sigma[1,2]))
       1 - pnorm(z_ag, meanss, sigmas) + pnorm(- z_ag, meanss, sigmas)
     }
 
@@ -125,8 +146,8 @@ get_seq_test_comp_RCT_norm <- function(B = 500,
     for (g in seq_along(m_t_true_grid)) {
       print(g)
       # True parameter
-      m_t_true <- m_t_true_grid[g]
-      sample_data <- function(N) sample_patient(N, c(m_t_true, m))
+      mu_true <- c(m_t_true_grid[g], m)
+      sample_data <- function(N) sample_patient(N, mu_true)
 
       # Storage
       HCP_res <- matrix(NA_real_, nrow = B, ncol = 2)
@@ -159,12 +180,12 @@ get_seq_test_comp_RCT_norm <- function(B = 500,
             B = B
           )
 
-          # Adaptive SPRT
+          # UIE
           UIE_res <- UIE_test(
               N = N,
               X = X,
-              f0_estimator = f0_estimator,
-              f1_estimator = f1_estimator,
+              log_f0 = log_f0,
+              log_f1 = log_f1,
               alpha = alpha,
               burnin = burnin
             )
@@ -192,27 +213,32 @@ get_seq_test_comp_RCT_norm <- function(B = 500,
         future.seed = TRUE
       )
 
-      HCP_res <- do.call(
-        rbind,
-        lapply(sim_results, `[[`, "HCP")
+      HCP_res <- matrix(
+        unlist(lapply(sim_results, `[[`, "HCP")),
+        ncol = 2,
+        byrow = TRUE
       )
       colnames(HCP_res) <- c("Reject", "ESS")
 
-      HW_res <- do.call(
-        rbind,
-        lapply(sim_results, `[[`, "HW")
+
+      HW_res <- matrix(
+        unlist(lapply(sim_results, `[[`, "HW")),
+        ncol = 2,
+        byrow = TRUE
       )
       colnames(HW_res) <- c("Reject", "ESS")
 
-      UIE_res <- do.call(
-        rbind,
-        lapply(sim_results, `[[`, "UIE")
+      UIE_res <- matrix(
+        unlist(lapply(sim_results, `[[`, "UIE")),
+        ncol = 2,
+        byrow = TRUE
       )
       colnames(UIE_res) <- c("Reject", "ESS")
 
-      GS_res <- do.call(
-        rbind,
-        lapply(sim_results, `[[`, "GS")
+      GS_res <- matrix(
+        unlist(lapply(sim_results, `[[`, "GS")),
+        ncol = 2,
+        byrow = TRUE
       )
       colnames(GS_res) <- c("Reject", "ESS")
 
@@ -220,7 +246,7 @@ get_seq_test_comp_RCT_norm <- function(B = 500,
       # Summaries
       # ----------------------------
 
-      out <- list(m_t_true = m_t_true,
+      out <- list(m_t_true = m_t_true_grid[g],
                   HCP_power = mean(HCP_res[, "Reject"]),
                   HCP_ESS   = mean(HCP_res[, "ESS"]),
                   UIE_power = mean(UIE_res[, "Reject"]),

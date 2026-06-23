@@ -8,8 +8,7 @@ if(FALSE){
   source("~/Desktop/Uni/Speciale/speciale/functions/SPRT.R")
 }
 
-get_seq_test_comp_RCT_N <- function(B = 1000,
-                                    B1 = 1000) {
+get_seq_test_comp_RCT_N <- function(B = 1000) {
 
   # Parameters
   N_grid <- seq(40, 200, by = 4)
@@ -36,9 +35,24 @@ get_seq_test_comp_RCT_N <- function(B = 1000,
     N <- length(X)
     cum_mean <- c(0.5, cumsum(X[-N]) / seq_len(N-1))
     p_t <- 2 * cum_mean - 1 + p_c
-    p_t <- pmin(pmax(p_t, 0.001), 0.999)
+    p_t <-  pmin(pmax(p_t, 0.0001), 0.9999)
     p_t * (1 - p_c) * (X == 1) +  (1 - p_t) * p_c * (X == 0) + (X == (1 / 2)) * ((1 - p_t) * (1 - p_c) + p_t * p_c)
   }
+
+  f1_list <- lapply(p_t_values, function(p_alt){
+
+    function(X){
+
+      ind1 <- (X == 1)
+      ind0 <- (X == 0)
+      indh <- (X == 1/2)
+
+      ind1 * p_alt * (1 - p_c) +
+        ind0 * (1 - p_alt) * p_c +
+        indh * ((1 - p_alt) * (1 - p_c) + p_alt * p_c)
+    }
+
+  })
 
   # -----------------------------------------------------------
   # Precompute HW critical values and Q_n calculating function
@@ -59,6 +73,16 @@ get_seq_test_comp_RCT_N <- function(B = 1000,
   pmf
   }
 
+  # Precompute the pmf and tail probabilities in order to avoid repeated computations
+  maxN <- max(N_grid)
+  pmf_lookup <- vector("list", maxN)
+  tail_lookup <- vector("list", maxN)
+  for(k in 1:maxN){
+    pmf <- null_pmf(k)
+    pmf_lookup[[k]] <- pmf
+    # We compute the tail probabilities P(X >= x[k])
+    tail_lookup[[k]] <- rev(cumsum(rev(pmf)))
+  }
   z_ag_exact <- function(N){
     cdf <- cumsum(null_pmf(N))
     k <- which(cdf >= 1 - alpha * gamma)[1]
@@ -71,18 +95,19 @@ get_seq_test_comp_RCT_N <- function(B = 1000,
   calc_q_n <- function(X, N, z_ag){
 
     Q_n <- numeric(N)
+    sumX <- cumsum(X)
 
     for(i in seq_len(N-1)){
-      s_obs <- sum(X[1:i])
+      s_obs <- sumX[i]
+      # We find the threshold
       threshold <- z_ag - s_obs
-      pmf <- null_pmf(N-i)
-      support <- seq(
-        0,
-        by = 0.5,
-        length.out = length(pmf)
-      )
-      Q_n[i] <- sum(pmf[support >= threshold])
-
+      # We find the index in the support of sum_{n+1}^N X_i corresponding to the threshold
+      idx <- threshold * 2 + 1
+      # If the index exceeds the support, there is 0 probability that the fixed sample size test will reject
+      if(idx > (N - i) * 2 + 1) break
+      # We calculate the tail probability
+      tail_prob <- tail_lookup[[N-i]]
+      Q_n[i] <- tail_prob[idx]
       if(Q_n[i] >= gamma) break
     }
 
@@ -90,6 +115,7 @@ get_seq_test_comp_RCT_N <- function(B = 1000,
 
     Q_n
   }
+
 
   # -----------------------------------------------------------
   # Precompute GS critical values
@@ -165,23 +191,12 @@ get_seq_test_comp_RCT_N <- function(B = 1000,
 
           for (j in seq_along(p_t_values)) {
 
-            f1 <- function(X) {
-
-              p_alt <- p_t_values[j]
-
-              p_alt * (1 - p_c) * (X == 1) +
-                (1 - p_alt) * p_c * (X == 0) +
-                (X == 1/2) *
-                ((1 - p_alt) * (1 - p_c) +
-                   p_alt * p_c)
-            }
-
             SPRT[(2*j - 1):(2*j)] <-
               run_sprt_test(
                 N,
                 X = X,
                 f0 = f0,
-                f1 = f1,
+                f1 = f1_list[[j]],
                 beta = alpha,
                 alpha = alpha
               )
@@ -365,7 +380,7 @@ get_seq_test_comp_RCT_N <- function(B = 1000,
     aes(N, Power, colour = Method)
   ) +
     geom_line() +
-    facet_wrap(~Scenario) +
+    facet_wrap(~Scenario, scales = "free") +
     theme_minimal()
 
   # -------------------------------------------------
@@ -392,7 +407,7 @@ get_seq_test_comp_RCT_N <- function(B = 1000,
     aes(N, ESS, colour = Method)
   ) +
     geom_line() +
-    facet_wrap(~Scenario) +
+    facet_wrap(~Scenario, scales = "free") +
     theme_minimal()
 
   return(list(

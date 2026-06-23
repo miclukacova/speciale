@@ -1,41 +1,44 @@
 # The universal inference process
-UIE <- function(X, f0_estimator, f1_estimator, N, burnin = NULL) {
+UIE <- function(X, log_f0, log_f1, N, burnin = NULL) {
   # Storage
-  Es <- vector(length = N)
+  logE <- vector(length = N)
   f1s <- vector(length = N)
 
   if(!is.null(burnin)){
     # Compute the e-values
     for(i in burnin:N){
-      f1s[i - (burnin - 1)] <- f1_estimator(X = X[1:i,], i = i)
-      f0s <- f0_estimator(X[1:i,], i)[burnin:i]
+      f1s[i] <- log_f1(X = X[1:i,], i = i)
+      f0s <- log_f0(X[1:i,], i)[burnin:i]
 
-      if(any(f0s == 0)) stop("UIE(f0) is 0")
+      if(!any(is.finite(f0s))) stop("log(f0) is infinite")
 
-      Es[i - (burnin - 1)] <- prod(f1s[1:(i - (burnin - 1))] / f0s)
+      logE[i] <- sum(f1s[burnin:i] - f0s)
     }
     # Adapt sizes
-    f1s <- f1s[1:(burnin - 1)]
-    Es <- c(rep(1, (burnin - 1)), Es[1:(N - (burnin - 1))])
+    f1s <- f1s[burnin:N]
+    logE <- c(rep(0, (burnin - 1)), logE[burnin:N])
 
   } else {
     # Compute the e-values
     for(i in 1:N){
-      f1s[i] <- f1_estimator(X = X[1:i,], i = i)
-      f0s <- f0_estimator(X[1:i,], i)
+      f1s[i] <- log_f1(X = X[1:i,], i = i)
+      f0s <- log_f0(X[1:i,], i)
 
-      if(any(f0s == 0)) stop("UIE(f0) is 0")
+      if(!any(is.finite(f0s))) {
+        print(i)
+        stop("log(f0) is infinite")
+      }
 
-      Es[i] <- prod(f1s[1:i] / f0s)
+      logE[i] <- sum(f1s[1:i] - f0s)
     }
   }
-  if(any(f1s == 0)) stop("UIE(f1) is 0")
-  Es
+  if(!any(is.finite(f1s))) stop("log(f1) is infinite")
+  logE
 }
 
-UIE_test <- function(X, f0_estimator, f1_estimator, N, alpha, burnin = FALSE) {
-  UIE_res <- UIE(X, f0_estimator, f1_estimator, N, burnin = burnin)
-  test_res <- UIE_res > 1/ alpha
+UIE_test <- function(X, log_f0, log_f1, N, alpha, burnin = NULL) {
+  logUIE <- UIE(X, log_f0, log_f1, N, burnin = burnin)
+  test_res <- logUIE > log(1 / alpha)
   #test_fut <- UIE_res < alpha / 2
   if(any(test_res)){         #| any(test_fut)
     ESS <- which((test_res) == 1)[1]           # + test_fut

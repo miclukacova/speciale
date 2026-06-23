@@ -85,14 +85,12 @@ list(
   # Comparing sequential test in a Bernoulli or RCT setting
   tar_target(
     name = seq_test_comp_RCT_p_t,
-    command = get_seq_test_comp_RCT_p_t(B = 10^4,
-                                        B1 = 10^4,
+    command = get_seq_test_comp_RCT_p_t(B = 5 * 10^4,
                                         N = 100,
                                         N1 = 200)),
   tar_target(
     name = seq_test_comp_RCT_N,
-    command = get_seq_test_comp_RCT_N(B = 10^4,
-                                      B1 = 10^4)),
+    command = get_seq_test_comp_RCT_N(B = 5 * 10^4)),
   tar_target(
     name = seq_test_comp_bern,
     command = get_seq_test_comp_bern()
