@@ -35,11 +35,10 @@ seq_test_comp_RCT|stem|86325c87721d43c0|072ad6dc10d16bfc|6cbc115b3512b6c6|455244
 run_holmes_test|function|5e343f5be265ede1
 get_seq_test_comp_RCT_norm_p_t|function|186cd7e2a476c3cb
 seq_test_comp_norm|stem||22b89ad97ea6bd0d|2c530c1562a7fbd1|-298891752||t20621.5733402637s||0|rds|local|vector|||0.45|package ‘rpact’ was built under R version 4.4.3|could not find function 'get_seq_test_RCT_norm'
-seq_test_comp_bern|stem|45e15bff2776b11f|e8b3a3b6222f0b9e|09af5eeccb821b57|-734377565||t20623.8597043258s|s664245b|664245|rds|local|vector|||38.309||
-seq_test_comp_RCT_norm_unknown_sigma|stem|7e3cd2a4b3b12135|6f0f6fb5cdf97b50|22272a930fe27428|-1306752126||t20623.8592587099s||674878|rds|local|vector|||2.281||UIE(f1) is 0
-seq_test_comp_RCT_norm|stem|068b18a35659aec2|e8a88e9630496d78|426bca0c4a2d555d|-945112895||t20627.4986045746s|s673611b|673611|rds|local|vector|||17.37||
+seq_test_comp_RCT_p_t|stem|ef978be051890d67|37c0e896f9598abe|ba8345725370b604|119195561||t20627.8270554332s|s1200380b|1200380|rds|local|vector|||85.702|package ‘rpact’ was built under R version 4.4.3|
+seq_test_comp_RCT_N|stem|2123af07eb42ddaf|e82116a177ec8ae2|0af1526a3de9a6d7|594183503||t20627.8404583187s|s1278484b|1278484|rds|local|vector|||1157.774|Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0|
 get_e_vs_p_power|function|0c5ea406d9201ae0
-UIE|function|e074ff15d04973a9
+UIE|function|974b205bfd23f426
 gs_run|function|2dcdd0daf0095f0f
 loss_bin|function|42bfb90a330e9b16
 beta|object|0f9a722c61834b89
@@ -58,46 +57,16 @@ get_NP_vs_SPRT_vs_GS|function|269ff79af725848d
 loss_sq_error|function|1fa4b90194237e90
 get_OLS_plot_risk|function|b57ed3a02cac9919
 plot_process|object|cc6a331fb3c0077c
-UIE_test|function|12acbd0c634e0214
+UIE_test|function|b4ff3d80c522c948
 get_alg_rej_prob|function|4179f188eecd289c
 get_rina_bb_test_data|function|3482d8dae331ae1f
 get_cv_test_data|function|eb2bc5aa504993b3
 HCP|function|1bc9fc6eab2db04b
 run_HCP_test|function|658a1f75877b7627
 get_seq_test_comp_bern|function|5ea6a22fae42e958
-get_seq_test_comp_RCT_norm|function|57ed0a027431cf0d
+get_seq_test_comp_RCT_norm|function|905e63689e0c5467
 get_seq_test_comp_RCT_p_t|function|41ba330ea375a96e
-get_seq_test_comp_RCT_N|function|25ce7ee1a76c9140
-seq_test_comp_RCT_p_t|stem|ef978be051890d67|37c0e896f9598abe|ba8345725370b604|119195561||t20627.5123190438s|s1200380b|1200380|rds|local|vector|||88.744|package ‘rpact’ was built under R version 4.4.3|
-seq_test_comp_RCT_N|stem|fa3c4f90ded833c9|dc44f5ff2f7cda60|66d3603fee230ff2|594183503||t20627.5146144727s|s1426668b|1426668|rds|local|vector|||198.083|Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0. Variance estimate is 0|
-get_e_vs_p_power|function|0c5ea406d9201ae0
-UIE|function|6adbd5b137f5dfc3
-gs_run|function|2dcdd0daf0095f0f
-loss_bin|function|42bfb90a330e9b16
-beta|object|0f9a722c61834b89
-alphas_soko|function|9c36fafc1986bb81
-get_OLS_risk|function|188431804916328d
-lm_alg|function|aefb2d116f064aa4
-get_e_vs_p_power_plot|function|bb01ea0b16bcef9a
-run_HW_test|function|6cf6629bf85ca22a
-run_sprt_test|function|e005ce45d297080c
-get_cv_test_plot|function|6289360e8d05f833
-get_OLS_rej_prob_plot|function|68b987ea6d70656e
-calculate_lambda_tilde|function|353ed29565acd4d9
-Example|object|cc6a331fb3c0077c
-get_rina_bb_test_plot|function|9ea6407fa7bd10a5
-get_NP_vs_SPRT_vs_GS|function|269ff79af725848d
-loss_sq_error|function|1fa4b90194237e90
-get_OLS_plot_risk|function|b57ed3a02cac9919
-plot_process|object|cc6a331fb3c0077c
-UIE_test|function|a5a8ac827e20f242
-get_alg_rej_prob|function|4179f188eecd289c
-get_rina_bb_test_data|function|3482d8dae331ae1f
-get_cv_test_data|function|eb2bc5aa504993b3
-HCP|function|1bc9fc6eab2db04b
-run_HCP_test|function|658a1f75877b7627
-get_seq_test_comp_bern|function|5ea6a22fae42e958
-get_seq_test_comp_RCT_norm|function|6951b95c03f6a547
-get_seq_test_comp_RCT_p_t|function|41ba330ea375a96e
-get_seq_test_comp_RCT_N|function|e5de6f2744a86894
-seq_test_comp_RCT_p_t|stem|fe3fe9800a8f81bf|d432192128d8759a|ba8345725370b604|119195561||t20627.5702524196s|s1205009b|1205009|rds|local|vector|||200.688|package ‘rpact’ was built under R version 4.4.3|
+get_seq_test_comp_RCT_N|function|0a995aa30b8cd328
+seq_test_comp_RCT_norm|stem|934dddea58db0bae|5895f4bc74b7ef79|a04f2a8254c5234f|-945112895||t20628.4416914792s|s677135b|677135|rds|local|vector|||12020.368|package ‘rpact’ was built under R version 4.4.3|
+seq_test_comp_RCT_norm_unknown_sigma|stem|e5ccf965c5bb22a9|a82a9c4f6978506d|a04f2a8254c5234f|-1306752126||t20628.4520903213s|s669583b|669583|rds|local|vector|||898.236||
+seq_test_comp_bern|stem|45e15bff2776b11f|e8b3a3b6222f0b9e|58686ecc9563423c|-734377565||t20628.4525599978s|s664245b|664245|rds|local|vector|||40.362||

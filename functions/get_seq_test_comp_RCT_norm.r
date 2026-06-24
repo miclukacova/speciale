@@ -14,7 +14,8 @@ get_seq_test_comp_RCT_norm <- function(B = 500,
                                        Sigma = matrix(c(1,0,0,1), ncol = 2),
                                        side = 2,
                                        sigmaUnknown = FALSE,
-                                       burnin = NULL) {
+                                       burnin = 1,
+                                       m_init = 0.3) {
 
   # Parameters
   m_t_true_grid <- seq(0.1, 0.7, by = 0.05)
@@ -38,64 +39,13 @@ get_seq_test_comp_RCT_norm <- function(B = 500,
   }
 
   # Estimator of density in the null
-  log_f0 <- function(X, i) {
-    mu_est <- mean(X)
-    if(i < 3) {
-      if(sigmaUnknown) Sigma_est <- diag(2)
-      else Sigma_est <- Sigma
-      return(mvtnorm::dmvnorm(X, mean = c(mu_est, mu_est), sigma = Sigma_est, log = TRUE))
-    }
-
-    if(sigmaUnknown){
-      sigma2_est1 <- var(X[,1])
-      sigma2_est0 <- var(X[,2])
-      covar <- cov(X[,1], X[,2])
-
-      Sigma_est <- matrix(
-        c(sigma2_est1, covar,
-          covar, sigma2_est0),
-        ncol = 2
-      )
-    } else {
-      Sigma_est <- Sigma
-    }
-
-    mvtnorm::dmvnorm(
-      X,
-      mean = c(mu_est, mu_est),
-      sigma = Sigma_est,
-      log = TRUE
-    )
+  log_f0 <- function(X, mu_est, sigma_est) {
+    mvtnorm::dmvnorm(X, mean = c(mu_est, mu_est), sigma = sigma_est, log = TRUE)
   }
 
-
   # Estimator of density in the alternative
-  log_f1 <- function(X, init_m = 0.3, i) {
-    if(sigmaUnknown){
-      if(i < 3){
-        Sigma_est <- diag(2)
-      } else {
-        sigma2_est1 <- var(X[1:(i-1),1])
-        sigma2_est0 <- var(X[1:(i-1),2])
-        covar <- cov(X[1:(i-1),1], X[1:(i-1),2])
-        Sigma_est <- matrix(
-          c(sigma2_est1, covar,
-            covar, sigma2_est0),
-          ncol = 2
-        )
-      }
-
-    } else {
-      Sigma_est <- Sigma
-    }
-    if(is.vector(X)){
-      return(mvtnorm::dmvnorm(X, mean = c(init_m, init_m), sigma = Sigma_est, log = TRUE))
-    }
-
-    mu_est1 <- mean(X[1:(i-1),1])
-    mu_est0 <- mean(X[1:(i-1),2])
-
-    mvtnorm::dmvnorm(X[i,,drop = FALSE], mean = c(mu_est1, mu_est0), sigma = Sigma_est, log = TRUE)
+  log_f1 <- function(X, mT_est, mC_est, sigma_est) {
+    mvtnorm::dmvnorm(X, mean = c(mT_est, mC_est), sigma = sigma_est, log = TRUE)
   }
 
   # -----------------------------------------------------------
@@ -182,12 +132,14 @@ get_seq_test_comp_RCT_norm <- function(B = 500,
 
           # UIE
           UIE_res <- UIE_test(
-              N = N,
-              X = X,
-              log_f0 = log_f0,
-              log_f1 = log_f1,
-              alpha = alpha,
-              burnin = burnin
+            X = X,
+            log_f0 = log_f0,
+            log_f1 = log_f1,
+            N = N,
+            Sigma = Sigma,
+            sigmaUnknown = sigmaUnknown,
+            m_init = m_init,
+            burnin = burnin
             )
 
           # GS
