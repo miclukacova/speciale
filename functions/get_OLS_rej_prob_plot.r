@@ -1,45 +1,41 @@
-get_OLS_rej_prob_plot <- function(data1, data2, tau = 0.5, alpha = 0.05, N = 3000, n = 500) {
+get_OLS_rej_prob_plot <- function(data, tau = 0.5, alpha = 0.05, n = 500, N = 2500) {
 
-  gammas <- data1$gamma
-  rej_prob <- data1$rej_prob
-  gammas2 <- data2[[2]]$gamma
+  # We find the risk of the OLS algorithm for the ms in an interesting range
+  m_star <- data[[1]]
+  ms <- data[[2]]$ms
+  idx <- which(0.59 <= ms & ms<= 0.81)
+  risk_m <- data[[2]]$risk[idx]
+  ms <- ms[idx]
 
-  # We find the risk of the OLS algorithm for the gammas in range of the rejection probability
-  gamma_range <- range(gammas)
-  low_idx <- which(abs(gammas2 - gamma_range[1]) < 10^(-5))
-  high_idx <- which(abs(gammas2 - gamma_range[2]) < 10^(-5))
-  risk_gamma <- data2[[2]]$risk[low_idx: high_idx]
 
-  if(alpha < (1-tau)^(floor(1000/(n+1)))) {
+  # This is an exact power/rejection probability of the test
+  if(alpha < (1-tau)^(floor(N /(n + 1)))) {
     print("BB test power can be calculated - bound is exact")
     # calculating bb box power
-    bound <- alpha * (1 + (tau - risk_gamma)/(1-tau))^(floor(N/(n+1)))
-    bound <- pmin(bound, 1)
+    exact_rej_prob <- alpha * (1 + (tau - risk_m) / (1 - tau)) ^ (floor(N / (n + 1)))
+    exact_rej_prob <- pmin(exact_rej_prob, 1)
   }
-  else{
-    # calculating Rinas bound
-    tau_tilde <- (1+((1/alpha)-1)/N)*tau
-    bound <- alpha * (1 + (tau_tilde - risk_gamma)/(1-tau_tilde))^(N/n)
-    bound <- pmin(bound, 1)
-    print("Calculating the bound from Rina Thm")
-  }
+  # calculating Rinas bound
+  tau_tilde <- (1+((1/alpha)-1)/N)*tau
+  bound <- alpha * (1 + (tau_tilde - risk_m)/(1-tau_tilde))^(N/n)
+  bound <- pmin(bound, 1)
+  print("Calculating the bound from Rina Thm")
 
   # Calculating our bound
-  gamma_star <- data2$gamma_star
-  bound2 <- alpha + sqrt(1 - sqrt(2*gamma_star*gammas/(gamma_star^2+gammas^2)))*sqrt(2)
+  #m_star <- data2$m_star
+  #bound2 <- alpha + sqrt(1 - sqrt(2*m_star*ms/(m_star^2+ms^2)))*sqrt(2)
 
   plot <- ggplot() +
-    geom_line(aes(x = gammas, y = rej_prob, color = "Rejection probability"), size = 0.9) +
-    geom_line(aes(x = gammas2[56:86], y = bound, color = "Bound"), linetype = 2, size = 0.9) +
-    geom_line(aes(x = gammas, y = bound2, color = "Bound TV"), linetype = 2, size = 0.9) +
-    geom_vline(aes(xintercept = gamma_star), linetype = 3, size = 1, color = "black") +
+    geom_line(aes(x = ms, y = exact_rej_prob, color = "Rejection probability"), size = 0.9) +
+    geom_line(aes(x = ms, y = bound, color = "Bound"), linetype = 2, size = 0.9) +
+    #geom_line(aes(x = ms, y = bound2, color = "Bound TV"), linetype = 2, size = 0.9) +
+    geom_vline(aes(xintercept = m_star), linetype = 3, size = 1, color = "black") +
     annotate(
-      "text", label = expression(gamma^"*"),
-      x = 0.743, y = 0.15, size = 5, colour = "black"
+      "text", label = expression(m^"*"),
+      x = 0.75, y = 0.12, size = 5, colour = "black"
     )+
-    xlim(c(0.6,0.76)) +
     theme_bw() +
-    labs(x = expression(gamma),y = "Rejection Rate", color = NULL) +
+    labs(x = expression(m),y = "Rejection Probability", color = NULL) +
     scale_color_manual(
       values = c("Rejection probability" = "darkred","Bound" = "steelblue", "Bound TV" = "darkgreen"),
       labels = c( "Bound", "Bound TV", "Rejection Rate"))

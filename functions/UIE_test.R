@@ -6,21 +6,22 @@ UIE <- function(X, log_f0, log_f1, N, Sigma, sigmaUnknown, m_init, burnin) {
 
   # Estimates
   # Mean
-  mT_est  <- cumsum(X[,1]) / 1:N
-  mC_est  <- cumsum(X[,2]) / 1:N
+  i <- 1:N
+  mT_est  <- cumsum(X[,1]) / i
+  mC_est  <- cumsum(X[,2]) / i
   m0_est <- (cumsum(X) / (1:(2 * N)))[seq(2, 2 * N, by = 2)]
 
   # Variance covariance matrix
   if(sigmaUnknown){
     # Moments
-    mT2_est <- cumsum(X[,1]^2) / 1:N
-    mC2_est <- cumsum(X[,2]^2) / 1:N
-    mTC_est <- cumsum(X[,1] * X[,2]) / 1:N
+    mT2_est <- cumsum(X[,1]^2) / i
+    mC2_est <- cumsum(X[,2]^2) / i
+    mTC_est <- cumsum(X[,1] * X[,2]) / i
 
-    # Variance covariance
-    s2_1 <- mT2_est - (mT_est)^2
-    s2_2 <- mC2_est - (mC_est)^2
-    s2_12 <- mTC_est - mT_est * mC_est
+    # Variance covariance unbiased
+    s2_1 <- (i / (i - 1)) * (mT2_est - mT_est^2)
+    s2_2 <- (i / (i - 1)) * (mC2_est - mC_est^2)
+    s2_12 <- (i / (i - 1)) * (mTC_est -  mT_est * mC_est)
 
     # Initialize
     sigma_est <- diag(2)

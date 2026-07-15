@@ -17,6 +17,8 @@ get_seq_test_comp_RCT_norm <- function(B = 500,
                                        burnin = 1,
                                        m_init = 0.3) {
 
+  return()
+
   # Parameters
   m_t_true_grid <- seq(0.1, 0.7, by = 0.05)
   m <- 0.3
@@ -92,124 +94,107 @@ get_seq_test_comp_RCT_norm <- function(B = 500,
   #-------------------------------------------------------------------------------
 
   compare_tests <- function(N, z_ag) {
-    results <- vector("list", length(m_t_true_grid))
-    for (g in seq_along(m_t_true_grid)) {
-      print(g)
-      # True parameter
-      mu_true <- c(m_t_true_grid[g], m)
-      sample_data <- function(N) sample_patient(N, mu_true)
 
-      # Storage
-      HCP_res <- matrix(NA_real_, nrow = B, ncol = 2)
-      UIE_res <- HW_res <- GS_res <- HCP_res
+    results <- future.apply::future_lapply(
+      seq_along(m_t_true_grid),
+      function(g) {
+        print(g)
+        m_t <- m_t_true_grid[g]
 
-      # Simulations
-      sim_results <- future_lapply(
-        seq_len(B),
-        function(b) {
+        mu_true <- c(m_t, m)
 
-          X <- sample_data(N)
+        sim_results <- future.apply::future_lapply(
+          seq_len(B),
+          function(b) {
 
-          # HCP
-          HCP_res <- run_HCP_test(
-            m_0 = 1 / 2,
-            c = c,
-            X = (X[,1] - X[,2] + 5) / 10,
-            theta = theta,
-            alpha = alpha
-          )
+            X <- sample_patient(N, mu_true)
 
-          # HW
-          HW <- run_HW_test(
-            N = N,
-            X = X[,1] - X[,2],
-            calc_q_n = calc_q_n,
-            sample_data_null,
-            gamma = gamma,
-            quanti = z_ag,
-            B = B
-          )
-
-          # UIE
-          UIE_res <- UIE_test(
-            X = X,
-            log_f0 = log_f0,
-            log_f1 = log_f1,
-            N = N,
-            Sigma = Sigma,
-            sigmaUnknown = sigmaUnknown,
-            m_init = m_init,
-            burnin = burnin
+            HCP_res <- run_HCP_test(
+              m_0 = 1 / 2,
+              c = c,
+              X = (X[,1] - X[,2] + 5) / 10,
+              theta = theta,
+              alpha = alpha
             )
 
-          # GS
-          if(sigmaUnknown) sigmaGS <- TRUE
-          else sigmaGS <- sqrt(1 / N * (Sigma[1,1] + Sigma[2,2] - 2 * Sigma[1,2]))
-          GS <- gs_run(
-            Nmax = N,
-            alphas = alphas,
-            n_looks = n_looks,
-            X = X[, 1] - X[, 2],
-            m_0 = 0,
-            side = side,
-            sigmaUnknown = sigmaGS
-          )
+            HW_res <- run_HW_test(
+              N = N,
+              X = X[,1] - X[,2],
+              calc_q_n = calc_q_n,
+              sample_data_null,
+              gamma = gamma,
+              quanti = z_ag,
+              B = B
+            )
 
-          list(
-            HCP = HCP_res,
-            HW = HW,
-            UIE = UIE_res,
-            GS = GS
-          )
-        },
-        future.seed = TRUE
-      )
+            UIE_res <- UIE_test(
+              X = X,
+              log_f0 = log_f0,
+              log_f1 = log_f1,
+              N = N,
+              Sigma = Sigma,
+              sigmaUnknown = sigmaUnknown,
+              m_init = m_init,
+              burnin = burnin
+            )
 
-      HCP_res <- matrix(
-        unlist(lapply(sim_results, `[[`, "HCP")),
-        ncol = 2,
-        byrow = TRUE
-      )
-      colnames(HCP_res) <- c("Reject", "ESS")
+            sigmaGS <- if (sigmaUnknown) {
+              TRUE
+            } else {
+              sqrt((Sigma[1,1] + Sigma[2,2] - 2 * Sigma[1,2]) / N)
+            }
 
+            GS_res <- gs_run(
+              Nmax = N,
+              alphas = alphas,
+              n_looks = n_looks,
+              X = X[,1] - X[,2],
+              m_0 = 0,
+              side = side,
+              sigmaUnknown = sigmaGS
+            )
 
-      HW_res <- matrix(
-        unlist(lapply(sim_results, `[[`, "HW")),
-        ncol = 2,
-        byrow = TRUE
-      )
-      colnames(HW_res) <- c("Reject", "ESS")
+            list(
+              HCP = HCP_res,
+              HW  = HW_res,
+              UIE = UIE_res,
+              GS  = GS_res
+            )
+          },
+          future.seed = TRUE
+        )
 
-      UIE_res <- matrix(
-        unlist(lapply(sim_results, `[[`, "UIE")),
-        ncol = 2,
-        byrow = TRUE
-      )
-      colnames(UIE_res) <- c("Reject", "ESS")
+        # ----------------------------
+        # Convert to matrices
+        # ----------------------------
+        HCP_res <- do.call(rbind, lapply(sim_results, `[[`, "HCP"))
+        HW_res  <- do.call(rbind, lapply(sim_results, `[[`, "HW"))
+        UIE_res <- do.call(rbind, lapply(sim_results, `[[`, "UIE"))
+        GS_res  <- do.call(rbind, lapply(sim_results, `[[`, "GS"))
 
-      GS_res <- matrix(
-        unlist(lapply(sim_results, `[[`, "GS")),
-        ncol = 2,
-        byrow = TRUE
-      )
-      colnames(GS_res) <- c("Reject", "ESS")
+        colnames(HCP_res) <- colnames(HW_res) <- colnames(UIE_res) <- colnames(GS_res) <- c("Reject", "ESS")
 
-      # ----------------------------
-      # Summaries
-      # ----------------------------
+        # ----------------------------
+        # AVERAGE OVER B
+        # ----------------------------
+        tibble::tibble(
+          m_t_true = m_t,
 
-      out <- list(m_t_true = m_t_true_grid[g],
-                  HCP_power = mean(HCP_res[, "Reject"]),
-                  HCP_ESS   = mean(HCP_res[, "ESS"]),
-                  UIE_power = mean(UIE_res[, "Reject"]),
-                  UIE_ESS   = mean(UIE_res[, "ESS"]),
-                  HW_power = mean(HW_res[, "Reject"]),
-                  HW_ESS   = mean(HW_res[, "ESS"]),
-                  GS_power = mean(GS_res[, "Reject"]),
-                  GS_ESS   = mean(GS_res[, "ESS"]))
+          HCP_power = mean(HCP_res[, "Reject"]),
+          HCP_ESS   = mean(HCP_res[, "ESS"]),
 
-      results[[g]] <- tibble::as_tibble(out)
-    }
+          UIE_power = mean(UIE_res[, "Reject"]),
+          UIE_ESS   = mean(UIE_res[, "ESS"]),
+
+          HW_power  = mean(HW_res[, "Reject"]),
+          HW_ESS    = mean(HW_res[, "ESS"]),
+
+          GS_power  = mean(GS_res[, "Reject"]),
+          GS_ESS    = mean(GS_res[, "ESS"])
+        )
+      },
+      future.seed = TRUE
+    )
 
     dplyr::bind_rows(results)
   }

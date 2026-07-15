@@ -12,6 +12,7 @@ get_seq_test_comp_RCT_p_t <- function(B = 500,
                                       N = 100,
                                       N1 = 200) {
 
+  return()
   # Parameters
   p_t_true_grid <- seq(0.3, 0.62, by = 0.02)
   sprt_grid <- c(0.45, 0.6)
@@ -44,7 +45,7 @@ get_seq_test_comp_RCT_p_t <- function(B = 500,
     N <- length(X)
     cum_mean <- c(0.5, cumsum(X[-N]) / seq_len(N-1))
     p_t <- 2 * cum_mean - 1 + p_c
-    p_t <- pmin(pmax(p_t, 0.0001), 0.9999)
+    p_t <- pmin(pmax(p_t, 0.3), 0.9999)
     p_t * (1 - p_c) * (X == 1) +  (1 - p_t) * p_c * (X == 0) + (X == (1 / 2)) * ((1 - p_t) * (1 - p_c) + p_t * p_c)
   }
 

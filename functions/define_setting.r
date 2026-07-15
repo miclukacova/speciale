@@ -11,3 +11,7 @@ lm_alg <- function(X, Y) {
 # Our particular choice of betas
 beta <- c(0.3,0.9)
 
+
+sample_binom <- function(n, true_mean) {
+  X <- rbinom(n, 1, true_mean)
+}

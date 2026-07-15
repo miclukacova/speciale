@@ -10,6 +10,8 @@ if(FALSE){
 
 get_seq_test_comp_RCT_N <- function(B = 1000) {
 
+  return()
+
   # Parameters
   N_grid <- seq(40, 200, by = 2)
   p_t_values <- c(0.45, 0.60)
@@ -35,7 +37,7 @@ get_seq_test_comp_RCT_N <- function(B = 1000) {
     N <- length(X)
     cum_mean <- c(0.5, cumsum(X[-N]) / seq_len(N-1))
     p_t <- 2 * cum_mean - 1 + p_c
-    p_t <-  pmin(pmax(p_t, 0.0001), 0.9999)
+    p_t <-  pmin(pmax(p_t, 0.3), 0.9999)
     p_t * (1 - p_c) * (X == 1) +  (1 - p_t) * p_c * (X == 0) + (X == (1 / 2)) * ((1 - p_t) * (1 - p_c) + p_t * p_c)
   }
 

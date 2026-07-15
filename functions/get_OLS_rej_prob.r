@@ -1,5 +1,5 @@
-get_alg_rej_prob <- function(alpha = 0.05, gammas = seq(0.6,0.9, by = 0.05),
-                             tau = 0.5, B = 10^4, N = 3000, n = 500, loss, alg) {
+get_OLS_rej_prob <- function(alpha = 0.05, ms = seq(0.6,0.9, by = 0.05),
+                             tau = 0.5, B = 10^4, n = 500, N = 2500) {
 
   set.seed(6389)
 
@@ -7,7 +7,7 @@ get_alg_rej_prob <- function(alpha = 0.05, gammas = seq(0.6,0.9, by = 0.05),
   i <- 1
   test_res <- c()
 
-  for(gamma in gammas){
+  for(m in ms){
     k_star <- -1
     a_star <- -1
     while(a_star < 0 | a_star > 1){
@@ -21,7 +21,7 @@ get_alg_rej_prob <- function(alpha = 0.05, gammas = seq(0.6,0.9, by = 0.05),
       X1 <- rnorm(N,-10,2)
       X2 <- rnorm(N,-1,1)
       X <- cbind(X1,X2)
-      Y <- X %*% beta + rnorm(N, sd = gamma)
+      Y <- X %*% beta + rnorm(N, sd = m)
 
       # Black box test
       #-------------------------------------------------------------------------------
@@ -33,14 +33,14 @@ get_alg_rej_prob <- function(alpha = 0.05, gammas = seq(0.6,0.9, by = 0.05),
       hat_f_k <- list()
       for(k in 1:K){
         indices <- ((k -1) * (n+1) + 1):(k*(n+1) -1)
-        hat_f_k[[k]] <- alg(X[indices,], Y[indices])
+        hat_f_k[[k]] <- lm_alg(X[indices,], Y[indices])
       }
 
       loss_k <- c()
 
       for(k in 1:K){
         y_hat <- hat_f_k[[k]](X[k*(n+1),])
-        loss_k[k] <- loss(y_hat, Y[k*(n+1)])
+        loss_k[k] <- loss_bin(y_hat, Y[k*(n+1)])
       }
 
       S <- sum(loss_k)
@@ -52,5 +52,5 @@ get_alg_rej_prob <- function(alpha = 0.05, gammas = seq(0.6,0.9, by = 0.05),
     print(i)
   }
 
-  return(data.frame(gamma = gammas, rej_prob = rej_prob))
+  return(data.frame(ms = ms, rej_prob = rej_prob))
 }
