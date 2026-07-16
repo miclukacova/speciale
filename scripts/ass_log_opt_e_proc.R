@@ -46,7 +46,7 @@ p1 <- ggplot(D_long,
   geom_line(linewidth = 1.1) +
   labs(
     x = "Time",
-    y = expression(log(E[t])),
+    y = expression(log(E[n])),
     color = NULL
   ) +
   scale_color_manual(
@@ -70,7 +70,7 @@ p2 <- ggplot(D, aes(t, regret)) +
   labs(
     x = "Time",
     y = expression(
-      frac(log(E[t]) - log(E[t]^nu), t)
+      frac(log(E[n]) - log(E[n]^nu), n)
     )
   ) +
   theme_minimal(base_size = 15)
