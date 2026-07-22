@@ -4,12 +4,18 @@
 
 # Calculating the predictable sequence
 calculate_lambda_tilde <- function(X, alpha){
+  # Number of observations
   n <- length(X)
+  # mu_t hat
   mu_hat <- (1 /2 + cumsum(X)) / (1:n +1)
+  # sigma_t hat
   sigma_hat <- (1 / 4 + cumsum((X - mu_hat) ^ 2)) / (1:n + 1)
 
+  # We shift by 1 to restore predictability
   sigma_hat_t_1 <- c(1 / 4, sigma_hat)[1:n]
+  # lambda tilde calculation
   lambda_tilde <- sqrt(2 * log(2 / alpha) / (sigma_hat_t_1 * 1:n * log(1:n + 1)))
+
   lambda_tilde
 
 }
@@ -32,7 +38,7 @@ HCP <- function(m_0, c, X, theta, alpha) {
 # The HCP test
 run_HCP_test <- function(m_0, c, X, theta, alpha) {
   HCP_res <- HCP(m_0, c, X, theta, alpha)
-  test_res <- HCP_res > 1/ alpha
+  test_res <- HCP_res >= 1 / alpha
   #test_fut <- HCP_res < alpha / 2
   if(any(test_res)){         #| any(test_fut)
     ESS <- which((test_res) == 1)[1]           # + test_fut

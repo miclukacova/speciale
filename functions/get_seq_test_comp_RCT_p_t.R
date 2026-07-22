@@ -8,27 +8,29 @@ if(FALSE){
   source("~/Desktop/Uni/Speciale/speciale/functions/SPRT.R")
 }
 
-get_seq_test_comp_RCT_p_t <- function(B = 500,
+get_seq_test_comp_RCT_p_t <- function(B,
                                       N = 100,
-                                      N1 = 200) {
+                                      N1 = 200,
+                                      p_c,
+                                      m_0,
+                                      c,
+                                      theta,
+                                      alpha,
+                                      gamma,
+                                      n_looks) {
 
-  return()
   # Parameters
   p_t_true_grid <- seq(0.3, 0.62, by = 0.02)
   sprt_grid <- c(0.45, 0.6)
-  p_c <- 0.3
-  m_0 = 1 / 2
-  c = 3 / 4
-  theta = 1
-  alpha = 0.05
-  gamma = 0.9
-  n_looks = 4
 
   # GST
   alphas <- rpact::getDesignGroupSequential(kMax = n_looks,
                                             alpha = alpha,
                                             sided = 1,
                                             typeOfDesign = "OF")$criticalValues
+
+  # The variance of the D_n's under the null (the variance is completely determined by the mean of X_n^T)
+  sigma <- sqrt(1 / 2 * (p_c * (1 - p_c)))
 
   # Data sampling function
   sample_patient <- function(N, p_t) {
@@ -45,12 +47,11 @@ get_seq_test_comp_RCT_p_t <- function(B = 500,
     N <- length(X)
     cum_mean <- c(0.5, cumsum(X[-N]) / seq_len(N-1))
     p_t <- 2 * cum_mean - 1 + p_c
-    p_t <- pmin(pmax(p_t, 0.3), 0.9999)
+    p_t <- pmin(pmax(p_t, 0.3), 0.999)
     p_t * (1 - p_c) * (X == 1) +  (1 - p_t) * p_c * (X == 0) + (X == (1 / 2)) * ((1 - p_t) * (1 - p_c) + p_t * p_c)
   }
 
   # List of
-
   f1_list <- lapply(sprt_grid, function(p_alt){
 
     function(X){
@@ -93,6 +94,7 @@ get_seq_test_comp_RCT_p_t <- function(B = 500,
   for(k in 1:max(N, N1)){
     pmf <- null_pmf(k)
     pmf_lookup[[k]] <- pmf
+
     # We compute the tail probabilities P(X >= x[k])
     tail_lookup[[k]] <- rev(cumsum(rev(pmf)))
   }
@@ -159,7 +161,7 @@ get_seq_test_comp_RCT_p_t <- function(B = 500,
 
           # HCP
           HCP <- run_HCP_test(
-            m_0 = 1 / 2,
+            m_0 = m_0,
             c = c,
             X = X,
             theta = theta,
@@ -207,7 +209,9 @@ get_seq_test_comp_RCT_p_t <- function(B = 500,
             alphas = alphas,
             n_looks = n_looks,
             X = X,
-            m_0 = m_0
+            m_0 = m_0,
+            sigmaUnknown = FALSE,
+            sigma = sigma
           )
 
           list(
@@ -328,7 +332,20 @@ get_seq_test_comp_RCT_p_t <- function(B = 500,
     facet_wrap(~Design, scales = "free_y") +
     theme_minimal() +
     labs(x = expression(p[t])) +
-    geom_hline(aes(yintercept = alpha), linetype = 2)
+    geom_hline(aes(yintercept = alpha), linetype = 2) +
+    scale_color_manual(values = c("GS" = "darkgreen",
+                                  "HCP" = "firebrick",
+                                  "HW" = "steelblue",
+                                  "SPRT(0.45)" = "orange",
+                                  "SPRT(0.6)" = "goldenrod",
+                                  "SPRT(adap)" = "#009E73"),
+                       labels = c("GS" = "GS-test",
+                                  "HCP" = "HCP-test",
+                                  "HW" = "HW-test",
+                                  "UIE" = "UIE-test",
+                                  "SPRT(0.45)" = "SPRT(0.45)",
+                                  "SPRT(0.6)" = "SPRT(0.6)",
+                                  "SPRT(adap)" = "SPRT(adap)"))
 
   # ESS plot
   ESS_df <- bind_rows(res, res1) |>
@@ -347,7 +364,19 @@ get_seq_test_comp_RCT_p_t <- function(B = 500,
     geom_line() +
     facet_wrap(~Design, scales = "free_y") +
     theme_minimal()+
-    labs(x = expression(p[t]))
+    labs(x = expression(p[t])) +
+    scale_color_manual(values = c("GS" = "darkgreen",
+                                  "HCP" = "firebrick",
+                                  "HW" = "steelblue",
+                                  "SPRT(0.45)" = "orange",
+                                  "SPRT(0.6)" = "goldenrod",
+                                  "SPRT(adap)" = "#009E73"),
+                       labels = c("GS" = "GS-test",
+                                  "HCP" = "HCP-test",
+                                  "HW" = "HW-test",
+                                  "SPRT(0.45)" = "SPRT(0.45)",
+                                  "SPRT(0.6)" = "SPRT(0.6)",
+                                  "SPRT(adap)" = "SPRT(adap)"))
 
   return(list(df = df, df1 = df1, p2 = p2, p3 = p3))
 }

@@ -37,7 +37,7 @@ get_OLS_rej_prob_plot <- function(data, tau = 0.5, alpha = 0.05, n = 500, N = 25
     theme_bw() +
     labs(x = expression(m),y = "Rejection Probability", color = NULL) +
     scale_color_manual(
-      values = c("Rejection probability" = "darkred","Bound" = "steelblue", "Bound TV" = "darkgreen"),
+      values = c("Rejection probability" = "firebrick","Bound" = "steelblue", "Bound TV" = "darkgreen"),
       labels = c( "Bound", "Bound TV", "Rejection Rate"))
 
   #ggsave(here::here("plots/OLS_risk_plot.pdf"), plot = plot)

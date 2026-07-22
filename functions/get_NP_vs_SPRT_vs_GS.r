@@ -148,6 +148,9 @@ get_NP_vs_SPRT_vs_GS <- function(B = 5 * 10^4) {
     geom_line(aes(y = NP_power, colour = "Fixed NP"), linewidth = 1.1) +
     geom_line(aes(y = SPRT_power, colour = "SPRT"), linewidth = 1.1) +
     geom_line(aes(y = GS_power, colour = "GS test"), linewidth = 1.1) +
+    scale_color_manual(values = c("Fixed NP" = "steelblue",
+                                  "SPRT" = "firebrick",
+                                  "GS test" = "darkgreen"))+
     labs(
       y = "Power",
       colour = "",
@@ -160,6 +163,9 @@ get_NP_vs_SPRT_vs_GS <- function(B = 5 * 10^4) {
     geom_line(aes(y = n_np, colour = "Fixed NP"), linewidth = 1.1) +
     geom_line(aes(y = SPRT_ESS, colour = "SPRT"), linewidth = 1.1) +
     geom_line(aes(y = GS_ESS, colour = "GS test"), linewidth = 1.1) +
+    scale_color_manual(values = c("Fixed NP" = "steelblue",
+                                  "SPRT" = "firebrick",
+                                  "GS test" = "darkgreen"))+
     labs(
       y = "Expected sample size",
       colour = "",

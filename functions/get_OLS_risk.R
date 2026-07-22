@@ -3,7 +3,7 @@ get_OLS_risk <- function(tau = 0.5, B = 10^4, n = 500) {
   set.seed(53794)
 
   # Definition of vectors for the collection of results
-  riskss <- c()                                                                # This is a vector for every single calculation of the conditional probability
+  riskss <- c()                                                                 # This is a vector for every single calculation of the conditional probability
   ms <- c(seq(0.04, 1,by =0.02), seq(1, 10, by = 1), seq(10,100, by = 10))      # This is the sequence standard deviations
   risk_est <- c()
 

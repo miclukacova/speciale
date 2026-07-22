@@ -6,7 +6,7 @@ get_e_vs_p_power <- function(
     B = 5000,
     alpha = 0.05,
     true_mean = 0.7,
-    p = 1/2,                                 # The value we test for
+    p = 1/2,                                  # The value we test for
     c = 3/4,                                  # Truncation level
     sample_fct
 ) {

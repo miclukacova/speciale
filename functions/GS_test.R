@@ -4,7 +4,14 @@
 
 ## To do employ this test
 
-gs_run <- function(Nmax, alphas, n_looks, X, m_0, side = 1, sigmaUnknown = TRUE) {
+gs_run <- function(Nmax,
+                   alphas,
+                   n_looks,
+                   X,
+                   m_0,
+                   side = 1,
+                   sigmaUnknown = TRUE,
+                   sigma = NULL) {
 
   # Information times / looks
   look_times <- round(seq(Nmax / n_looks, Nmax, length.out = n_looks))
@@ -26,7 +33,7 @@ gs_run <- function(Nmax, alphas, n_looks, X, m_0, side = 1, sigmaUnknown = TRUE)
 
     # Cumulative variance estimate
     if(sigmaUnknown) sigma_hat_k <- sqrt(1 / (look_times[k] - 1) * sum((X_k - Xbar_k)^2))
-    else sigma_hat_k <- sigmaUnknown
+    else sigma_hat_k <- sigma
     if(sigma_hat_k == 0) warning("Variance estimate is 0")
 
     # Z_k_star
