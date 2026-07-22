@@ -66,16 +66,17 @@ if(Example){
 plot_process = FALSE
 if(plot_process){
   # Parameters
+  set.seed(29034)
   m_0 <- 0.5
   c <- 1 / 2
-  N <- 200
-  theta <- 3 / 4
+  N <- 300
+  theta <- 0.8
   alpha <- 0.05
   m_1 <- 0.6
 
   simulate_path <- function(m_true) {
     X <- rbinom(N, 1, m_true)
-    HCP(m_0 = m_0, c = c, X = X, theta = theta)
+    HCP(m_0 = m_0, c = c, X = X, theta = theta, alpha = alpha)
   }
 
   HCP_mat <- replicate(10, simulate_path(m_true = m_1))
@@ -102,12 +103,13 @@ if(plot_process){
     geom_hline(yintercept = 1 / alpha,
                colour = "red",
                linetype = 2) +
-    geom_hline(yintercept = alpha,
-               colour = "red",
-               linetype = 2) +
+    #geom_hline(yintercept = alpha,
+    #           colour = "red",
+    #           linetype = 2) +
     scale_y_log10() +
     theme_minimal() +
     facet_wrap(~ scenario, ncol = 2)
+  p1
 }
 
 
