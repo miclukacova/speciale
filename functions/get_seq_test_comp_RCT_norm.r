@@ -8,25 +8,23 @@ if(FALSE){
   source("~/Desktop/Uni/Speciale/speciale/functions/UIE_test.R")
 }
 
-get_seq_test_comp_RCT_norm <- function(B = 500,
-                                       N = 100,
-                                       N1 = 200,
-                                       Sigma = matrix(c(1,0,0,1), ncol = 2),
-                                       side = 2,
-                                       sigmaUnknown = FALSE,
-                                       burnin = 1,
-                                       m_init = 0.3) {
-
-  return()
+get_seq_test_comp_RCT_norm <- function(B,
+                                       N,
+                                       N1,
+                                       Sigma,
+                                       side,
+                                       sigmaUnknown,
+                                       burnin,
+                                       m_init,
+                                       m,
+                                       c,
+                                       theta,
+                                       alpha,
+                                       gamma,
+                                       n_looks) {
 
   # Parameters
   m_t_true_grid <- seq(0.1, 0.7, by = 0.05)
-  m <- 0.3
-  c = 3 / 4
-  theta = 1 / 2
-  alpha = 0.05
-  gamma = 0.9
-  n_looks = 4
 
   # GST
   alphas <- rpact::getDesignGroupSequential(kMax = n_looks,
@@ -151,7 +149,8 @@ get_seq_test_comp_RCT_norm <- function(B = 500,
               X = X[,1] - X[,2],
               m_0 = 0,
               side = side,
-              sigmaUnknown = sigmaGS
+              sigmaUnknown = FALSE,
+              sigma = sigmaGS
             )
 
             list(
@@ -247,7 +246,15 @@ get_seq_test_comp_RCT_norm <- function(B = 500,
     facet_wrap(~Design, scales = "free_y") +
     theme_minimal()+
     geom_hline(aes(yintercept = alpha), linetype = 2)+
-    labs(x = expression(m[T]))
+    labs(x = expression(m[T]))+
+    scale_color_manual(values = c("GS" = "darkgreen",
+                                  "HCP" = "firebrick",
+                                  "HW" = "steelblue",
+                                  "UIE" = "orange"),
+                       labels = c("GS" = "GS-test",
+                                  "HCP" = "HCP-test",
+                                  "HW" = "HW-test",
+                                  "UIE" = "UIE-test"))
 
   # ESS plot
   ESS_df <- bind_rows(res, res1) |>
@@ -266,7 +273,15 @@ get_seq_test_comp_RCT_norm <- function(B = 500,
     geom_line() +
     facet_wrap(~Design, scales = "free_y") +
     theme_minimal()+
-    labs(x = expression(m[T]))
+    labs(x = expression(m[T])) +
+    scale_color_manual(values = c("GS" = "darkgreen",
+                                  "HCP" = "firebrick",
+                                  "HW" = "steelblue",
+                                  "UIE" = "orange"),
+                       labels = c("GS" = "GS-test",
+                                  "HCP" = "HCP-test",
+                                  "HW" = "HW-test",
+                                  "UIE" = "UIE-test"))
 
   return(list(df = df, df1 = df1, p2 = p2, p3 = p3))
 }

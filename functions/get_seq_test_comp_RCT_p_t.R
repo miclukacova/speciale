@@ -20,7 +20,7 @@ get_seq_test_comp_RCT_p_t <- function(B,
                                       n_looks) {
 
   # Parameters
-  p_t_true_grid <- seq(0.3, 0.62, by = 0.02)
+  p_t_true_grid <- seq(0.3, 0.625, by = 0.025)
   sprt_grid <- c(0.45, 0.6)
 
   # GST
@@ -187,8 +187,8 @@ get_seq_test_comp_RCT_p_t <- function(B,
               X = X,
               f0 = f0,
               f1 = f1_list[[j]],
-              beta = alpha,
-              alpha = alpha
+              gamma0 = alpha / (1 - alpha),
+              gamma1 = (1 - alpha) / alpha
             )
           }
 
@@ -199,8 +199,8 @@ get_seq_test_comp_RCT_p_t <- function(B,
               X = X,
               f0 = f0,
               f1 = f1_adap,
-              beta = alpha,
-              alpha = alpha
+              gamma0 = 0,
+              gamma1 = 1 / alpha
             )
 
           # GS

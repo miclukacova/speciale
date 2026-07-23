@@ -85,9 +85,9 @@ list(
                                     N = 2500,
                                     n = 500)),
 
-  #------------------------------
+  #---------------------------------------------
   # Sequential tests
-  #------------------------------
+  #---------------------------------------------
 
   # E-variable and p-variable comparision: used in the motivational example
   tar_target(
@@ -116,9 +116,9 @@ list(
                                      theta_nu = 0.2,
                                      N = 100)),
 
-  #------------------------------
+  #---------------------------------------------
   # Comparing sequential test in an RCT setting.
-  #------------------------------
+  #---------------------------------------------
 
   # Function outputs plot of power as function of p_T.
   tar_target(
@@ -137,7 +137,14 @@ list(
   # Function outputs plot of power as function of N.
   tar_target(
     name = seq_test_comp_RCT_N,
-    command = get_seq_test_comp_RCT_N(B = B)),
+    command = get_seq_test_comp_RCT_N(B = B,
+                                      p_c = 0.3,
+                                      m_0 = 1 / 2,
+                                      c = 3 / 4,
+                                      theta = 1,
+                                      alpha = alpha,
+                                      gamma = 0.9,
+                                      n_looks = 20)),
 
   # Function outputs plot of power as function of N.
   tar_target(
@@ -156,17 +163,26 @@ list(
   # Function outputs the same table as in Sokolova
   # TO DO
 
-  #------------------------------
+  #---------------------------------------------
   # Comparing sequential testing in a normal example
-  #------------------------------
+  #---------------------------------------------
 
   tar_target(
     name = seq_test_comp_RCT_norm,
-    command = get_seq_test_comp_RCT_norm(B = B,
+    command = get_seq_test_comp_RCT_norm(B = 10^3,
                                          N = 100,
                                          N1 = 200,
                                          Sigma = matrix(c(1,0,0,1), ncol = 2),
-                                         side = 2)),
+                                         side = 2,
+                                         sigmaUnknown = FALSE,
+                                         burnin = 1,
+                                         m_init = 0.3,
+                                         m = 0.3,
+                                         c = 3 / 4,
+                                         theta = 1 / 2,
+                                         alpha = alpha,
+                                         gamma = 0.9,
+                                         n_looks = 20)),
   # Comparing sequential testing in a normal example with unknown variance
   tar_target(
     name = seq_test_comp_RCT_norm_unknown_sigma,

@@ -8,20 +8,21 @@ if(FALSE){
   source("~/Desktop/Uni/Speciale/speciale/functions/SPRT.R")
 }
 
-get_seq_test_comp_RCT_N <- function(B = 1000) {
-
-  return()
+get_seq_test_comp_RCT_N <- function(B,
+                                    p_c,
+                                    m_0,
+                                    c,
+                                    theta,
+                                    alpha,
+                                    gamma,
+                                    n_looks) {
 
   # Parameters
   N_grid <- seq(40, 200, by = 2)
   p_t_values <- c(0.45, 0.60)
-  p_c <- 0.3
-  m_0 = 1 / 2
-  c = 3 / 4
-  theta = 1
-  alpha = 0.05
-  gamma = 0.9
-  n_looks = 4
+
+  # The variance of the D_n's under the null (the variance is completely determined by the mean of X_n^T)
+  sigma <- sqrt(1 / 2 * (p_c * (1 - p_c)))
 
   # Data sampling function
   sample_patient <- function(N, p_t) {
@@ -199,8 +200,8 @@ get_seq_test_comp_RCT_N <- function(B = 1000) {
                 X = X,
                 f0 = f0,
                 f1 = f1_list[[j]],
-                beta = alpha,
-                alpha = alpha
+                gamma0 = alpha / (1 - alpha),
+                gamma1 = (1 - alpha) / alpha
               )
           }
 
@@ -210,8 +211,8 @@ get_seq_test_comp_RCT_N <- function(B = 1000) {
               X = X,
               f0 = f0,
               f1 = f1_adap,
-              beta = alpha,
-              alpha = alpha
+              gamma0 = 0,
+              gamma1 = 1 / alpha
             )
 
           # -------------------------
@@ -223,7 +224,9 @@ get_seq_test_comp_RCT_N <- function(B = 1000) {
             alphas = alphas,
             n_looks = n_looks,
             X = X,
-            m_0 = m_0
+            m_0 = m_0,
+            sigma = sigma,
+            sigmaUnknown = FALSE
           )
 
           list(
@@ -383,7 +386,19 @@ get_seq_test_comp_RCT_N <- function(B = 1000) {
   ) +
     geom_line() +
     facet_wrap(~Scenario, scales = "free") +
-    theme_minimal()
+    theme_minimal() +
+    scale_color_manual(values = c("GS" = "darkgreen",
+                                  "HCP" = "firebrick",
+                                  "HW" = "steelblue",
+                                  "SPRT(0.45)" = "orange",
+                                  "SPRT(0.6)" = "goldenrod",
+                                  "SPRT(adap)" = "#009E73"),
+                       labels = c("GS" = "GS-test",
+                                  "HCP" = "HCP-test",
+                                  "HW" = "HW-test",
+                                  "SPRT(0.45)" = "SPRT(0.45)",
+                                  "SPRT(0.6)" = "SPRT(0.6)",
+                                  "SPRT(adap)" = "SPRT(adap)"))
 
   # -------------------------------------------------
   # ESS plot
@@ -410,7 +425,19 @@ get_seq_test_comp_RCT_N <- function(B = 1000) {
   ) +
     geom_line() +
     facet_wrap(~Scenario, scales = "free") +
-    theme_minimal()
+    theme_minimal() +
+    scale_color_manual(values = c("GS" = "darkgreen",
+                                  "HCP" = "firebrick",
+                                  "HW" = "steelblue",
+                                  "SPRT(0.45)" = "orange",
+                                  "SPRT(0.6)" = "goldenrod",
+                                  "SPRT(adap)" = "#009E73"),
+                       labels = c("GS" = "GS-test",
+                                  "HCP" = "HCP-test",
+                                  "HW" = "HW-test",
+                                  "SPRT(0.45)" = "SPRT(0.45)",
+                                  "SPRT(0.6)" = "SPRT(0.6)",
+                                  "SPRT(adap)" = "SPRT(adap)"))
 
   return(list(
     res45 = res45,

@@ -2,10 +2,7 @@
 ######## A general version of the SPRT process #######
 ######################################################
 
-run_sprt_test <- function(N, X, f0, f1, beta, alpha) {
-
-  gamma0 <- beta / (1 - alpha)
-  gamma1 <- (1 - alpha) / beta
+run_sprt_test <- function(N, X, f0, f1, gamma0, gamma1) {
 
   logL <- cumsum(log(f1(X)) - log(f0(X)))
   ss <- min(which(logL >= log(gamma1) | log(gamma0) >= logL), N)
