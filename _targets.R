@@ -158,18 +158,16 @@ list(
                                   theta = 1,
                                   p_t_ms = 0.6)),
 
-  # Function outputs type-I error comparisons.
-  # TO DO
-  # Function outputs the same table as in Sokolova
-  # TO DO
 
   #---------------------------------------------
   # Comparing sequential testing in a normal example
   #---------------------------------------------
 
+  # Comparing sequential testing in a normal example with unknown variance
+  ## Function outputs power and ESS comparisons as function of M_T
   tar_target(
     name = seq_test_comp_RCT_norm,
-    command = get_seq_test_comp_RCT_norm(B = 10^3,
+    command = get_seq_test_comp_RCT_norm(B = 10^4,
                                          N = 100,
                                          N1 = 200,
                                          Sigma = matrix(c(1,0,0,1), ncol = 2),
@@ -183,14 +181,35 @@ list(
                                          alpha = alpha,
                                          gamma = 0.9,
                                          n_looks = 20)),
-  # Comparing sequential testing in a normal example with unknown variance
+
+  ## Function outputs power and ESS comparisons as function of N
   tar_target(
-    name = seq_test_comp_RCT_norm_unknown_sigma,
-    command = get_seq_test_comp_RCT_norm(B = B,
-                                         N = 100,
-                                         N1 = 200,
-                                         Sigma = matrix(c(1,0.4,0.4,2), ncol = 2),
-                                         side = 2,
-                                         sigmaUnknown = TRUE))
+    name = seq_test_comp_RCT_norm_N,
+    command = get_seq_test_comp_RCT_norm_N(B = 10^4,
+                                           Sigma = matrix(c(1,0,0,1), ncol = 2),
+                                           side = 2,
+                                           sigmaUnknown = FALSE,
+                                           burnin = 1,
+                                           m_init = 0.3,
+                                           m = 0.3,
+                                           c = 3 / 4,
+                                           theta = 1 / 2,
+                                           alpha = alpha,
+                                           gamma = 0.9,
+                                           n_looks = 20))
+
+  # Comparing sequential testing in a normal example with unknown variance
+  ## Function outputs power and ESS comparisons as function of M_T
+  #tar_target(
+  #  name = seq_test_comp_RCT_norm_unknown_sigma,
+  #  command = get_seq_test_comp_RCT_norm(B = B,
+  #                                       N = 100,
+  #                                       N1 = 200,
+  #                                       Sigma = matrix(c(1,0.4,0.4,2), ncol = 2),
+  #                                       side = 2,
+  #                                       sigmaUnknown = TRUE))
+
+  ## Function outputs power and ESS comparisons as function of N
+  ## TO DO
   )
 

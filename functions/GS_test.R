@@ -2,8 +2,6 @@
 ######### A general version of the GS test ###########
 ######################################################
 
-## To do employ this test
-
 gs_run <- function(Nmax,
                    alphas,
                    n_looks,

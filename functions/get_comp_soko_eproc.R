@@ -171,9 +171,9 @@ get_comp_soko_eproc <- function(alpha,
     scale_colour_manual(values = c("E-process" = "steelblue",
                                    "HCP" = "firebrick",
                                    "MS E-process" = "darkgreen"),
-                        labels = c("E-process" = "Soko-test",
+                        labels = c("E-process" = "Soko(0.45)-test",
                                    "HCP" = "HCP-test",
-                                   "MS E-process" = "MS Soko-test"))+
+                                   "MS E-process" = "Soko(0.6)-test"))+
     labs(x = expression(p[t]), y = "Power") +
     theme_bw()
 
@@ -187,9 +187,9 @@ get_comp_soko_eproc <- function(alpha,
     scale_colour_manual(values = c("E-process" = "steelblue",
                                    "HCP" = "firebrick",
                                    "MS E-process" = "darkgreen"),
-                        labels = c("E-process" = "Soko-test",
+                        labels = c("E-process" = "Soko(0.45)-test",
                                    "HCP" = "HCP-test",
-                                   "MS E-process" = "MS Soko-test"))+
+                                   "MS E-process" = "Soko(0.6)-test"))+
     labs(x = expression(p[t]), y = "Expected sample size") +
     theme_bw()
 
@@ -198,7 +198,8 @@ get_comp_soko_eproc <- function(alpha,
   # Example path under alternative
   #------------------------------------------------
 
-  n_rep = 5
+  set.seed(3978435)
+  n_rep = 10
   sim_one <- function(rep_id, lambda_star) {
     X <- sample_patient(N, p_t)
 
@@ -220,25 +221,27 @@ get_comp_soko_eproc <- function(alpha,
     df <- bind_rows(lapply(1:n_rep, function(rep) sim_one(rep, lambda_star)))
     df_ms <- bind_rows(lapply(1:n_rep, function(rep) sim_one(rep, lambda_star_ms)))
 
+    y_range <- range(c(df$value, df_ms$value), na.rm = TRUE)
+
     plot3 <- ggplot(df, aes(n, value, colour = process, group = interaction(process, rep))) +
       geom_line(alpha = 0.5) +
       geom_hline(yintercept = 1 / alpha, linetype = 2) +
-      scale_y_log10() +
+      scale_y_log10(limits = y_range) +
       labs(x = "N", y = "Process value (log scale)")+
       scale_colour_manual(values = c("E-process" = "steelblue",
                                      "HCP" = "firebrick"),
-                          labels = c("E-process" = "Soko-process",
+                          labels = c("E-process" = "Soko(0.45)-test",
                                      "HCP" = "HCP"))+
       theme_bw()
 
     plot4 <- ggplot(df_ms, aes(n, value, colour = process, group = interaction(process, rep))) +
       geom_line(alpha = 0.5) +
       geom_hline(yintercept = 1 / alpha, linetype = 2) +
-      scale_y_log10() +
+      scale_y_log10(limits = y_range) +
       labs(x = "N", y = "Process value (log scale)")+
       scale_colour_manual(values = c("E-process" = "darkgreen",
                                      "HCP" = "firebrick"),
-                          labels = c("E-process" = "MS Soko-process",
+                          labels = c("E-process" = "Soko(0.6)-test",
                                      "HCP" = "HCP"))+
       theme_bw()
 

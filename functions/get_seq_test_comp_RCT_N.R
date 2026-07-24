@@ -119,19 +119,14 @@ get_seq_test_comp_RCT_N <- function(B,
     Q_n
   }
 
-
   # -----------------------------------------------------------
-  # Precompute GS critical values
+  # GS critical values
   # -----------------------------------------------------------
 
-  alphas_lookup <- vector("list", max(N_grid))
-
-  for (N in N_grid) {
-    alphas_lookup[[N]] <- rpact::getDesignGroupSequential(kMax = n_looks,
-                                                          alpha = alpha,
-                                                          sided = 1,
-                                                          typeOfDesign = "OF")$criticalValues
-  }
+  alphas <- rpact::getDesignGroupSequential(kMax = n_looks,
+                                            alpha = alpha,
+                                            sided = 1,
+                                            typeOfDesign = "OF")$criticalValues
 
   # -------------------------------------------------
   # Main comparison function
@@ -149,7 +144,6 @@ get_seq_test_comp_RCT_N <- function(B,
           " N =", N, "\n")
 
       z_ag <- z_ag_lookup[g]
-      alphas <- alphas_lookup[[N]]
 
       sample_data <- function(N) sample_patient(N, p_t_true)
 
@@ -380,10 +374,7 @@ get_seq_test_comp_RCT_N <- function(B,
       Method = clean_method_names(Method)
     )
 
-  p_power <- ggplot(
-    power_df,
-    aes(N, Power, colour = Method)
-  ) +
+  p_power <- ggplot(power_df,aes(N, Power, colour = Method)) +
     geom_line() +
     facet_wrap(~Scenario, scales = "free") +
     theme_minimal() +
@@ -398,7 +389,8 @@ get_seq_test_comp_RCT_N <- function(B,
                                   "HW" = "HW-test",
                                   "SPRT(0.45)" = "SPRT(0.45)",
                                   "SPRT(0.6)" = "SPRT(0.6)",
-                                  "SPRT(adap)" = "SPRT(adap)"))
+                                  "SPRT(adap)" = "SPRT(adap)"))+
+    scale_y_continuous(limits = c(0.1, 1))
 
   # -------------------------------------------------
   # ESS plot

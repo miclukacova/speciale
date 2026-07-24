@@ -8,33 +8,27 @@ if(FALSE){
   source("~/Desktop/Uni/Speciale/speciale/functions/UIE_test.R")
 }
 
-get_seq_test_comp_RCT_norm <- function(B,
-                                       N,
-                                       N1,
-                                       Sigma,
-                                       side,
-                                       sigmaUnknown,
-                                       burnin,
-                                       m_init,
-                                       m,
-                                       c,
-                                       theta,
-                                       alpha,
-                                       gamma,
-                                       n_looks) {
-
+get_seq_test_comp_RCT_norm_N <- function(B,
+                                         Sigma,
+                                         side,
+                                         sigmaUnknown,
+                                         burnin,
+                                         m_init,
+                                         m,
+                                         c,
+                                         theta,
+                                         alpha,
+                                         gamma,
+                                         n_looks) {
+  # -----------------------------------------------------------
   # Parameters
-  m_t_true_grid <- seq(0, 1, by = 0.05)
+  # -----------------------------------------------------------
+  N_grid <- seq(50, 400, by = 10)
+  m_t_true_values <- c(0.6, 0.8)
 
-  # GST
-  alphas <- rpact::getDesignGroupSequential(kMax = n_looks,
-                                            alpha = alpha,
-                                            sided = side,
-                                            typeOfDesign = "OF")$criticalValues
-
-  sigmaGS <- sqrt(Sigma[1,1] + Sigma[2,2] - 2*Sigma[1,2])
-
+  # -----------------------------------------------------------
   # Data sampling function
+  # -----------------------------------------------------------
   sample_patient <- function(N, m) {
     X <- MASS::mvrnorm(n = N, mu = m, Sigma = Sigma)
     X
@@ -75,10 +69,10 @@ get_seq_test_comp_RCT_norm <- function(B,
     }
   }
 
-
   # -----------------------------------------------------------
   # Precompute HW critical values and Q_n calculating function
   # -----------------------------------------------------------
+  cat("Precomputing critical values...\n")
 
   # If sigma is unknown, we need an alternative approach to calculate Q_n,
   # we follow the approach outlined in Holmes section 11
@@ -100,87 +94,98 @@ get_seq_test_comp_RCT_norm <- function(B,
     calc_q_n <- NULL
   } else {
     # We use the mean of the D's as test statistic
-    sigma_D_N <- sqrt(1 / N * (Sigma[1,1] + Sigma[2,2] - 2 * Sigma[1,2]))
-    sigma_D_N1 <- sqrt(1 / N1 * (Sigma[1,1] + Sigma[2,2] - 2 * Sigma[1,2]))
+    sigma_D_N <- sqrt(1 / N_grid * (Sigma[1,1] + Sigma[2,2] - 2 * Sigma[1,2]))
     z_agN <- qnorm(p = 1 - alpha * gamma / side, mean = 0, sd = sigma_D_N)
-    z_agN1 <- qnorm(p = 1 - alpha * gamma / side, mean = 0, sd = sigma_D_N1)
+    N_max <- max(N_grid)
+    sigmas_lookup <- sqrt(1 / N_max ^ 2 * (N_max - 1:N_max) * (Sigma[1,1] + Sigma[2,2] - 2 * Sigma[1,2]))
 
-
-    sigmas <- sqrt(1 / N ^ 2 * (N - 1:N) * (Sigma[1,1] + Sigma[2,2] - 2 * Sigma[1,2]))
     calc_q_n <- function(X, N, z_ag) {
+
       meanss <- 1 / N * cumsum(X)
-      1 - pnorm(z_ag, meanss, sigmas) + pnorm(- z_ag, meanss, sigmas)
+      1 - pnorm(z_ag, meanss, sigmas_lookup[1:N]) + pnorm(- z_ag, meanss, sigmas_lookup[1:N])
     }
 
     sample_data_null <- NULL
   }
 
-  #-------------------------------------------------------------------------------
-  ## Comparisons
-  #-------------------------------------------------------------------------------
+  # -----------------------------------------------------------
+  # GS critical values and sigma if not unknown
+  # -----------------------------------------------------------
 
-  compare_tests <- function(N, z_ag) {
+  alphas <- rpact::getDesignGroupSequential(kMax = n_looks,
+                                            alpha = alpha,
+                                            sided = side,
+                                            typeOfDesign = "OF")$criticalValues
+
+  sigmaGS <- sqrt(Sigma[1,1] + Sigma[2,2] - 2*Sigma[1,2])
+
+  # -------------------------------------------------
+  # Main comparison function
+  # -------------------------------------------------
+
+  compare_tests <- function(m_T) {
+    mu_true <- c(m_T, m)
 
     results <- future.apply::future_lapply(
-      seq_along(m_t_true_grid),
+      seq_along(N_grid),
       function(g) {
         print(g)
-        m_t <- m_t_true_grid[g]
-        mu_true <- c(m_t, m)
+        N <- N_grid[g]
 
         HCP_mat <- matrix(0, B, 2)
         HW_mat  <- matrix(0, B, 2)
         UIE_mat <- matrix(0, B, 2)
         GS_mat  <- matrix(0, B, 2)
 
-        for(b in seq_len(B)) {
-            X <- sample_patient(N, mu_true)
+        for(b in seq_len(B)){
+          X <- sample_patient(N, mu_true)
 
-            HCP_mat[b,] <- run_HCP_test(
-              m_0 = 1 / 2,
-              c = c,
-              X = (X[,1] - X[,2] + 5) / 10,
-              theta = theta,
-              alpha = alpha
+          HCP_mat[b,] <- run_HCP_test(
+            m_0 = 1 / 2,
+            c = c,
+            X = (X[,1] - X[,2] + 5) / 10,
+            theta = theta,
+            alpha = alpha
             )
 
-            HW_mat[b,] <- run_HW_test(
-              N = N,
-              X = X[,1] - X[,2],
-              calc_q_n = calc_q_n,
-              sample_data_null = sample_data_null,
-              gamma = gamma,
-              quanti = z_ag,
-              B = B
+          HW_mat[b,] <- run_HW_test(
+            N = N,
+            X = X[,1] - X[,2],
+            calc_q_n = calc_q_n,
+            sample_data_null = sample_data_null,
+            gamma = gamma,
+            quanti = z_agN[N == N_grid],
+            B = B
             )
 
-            UIE_mat[b,] <- UIE_test(
-              X = X,
-              log_f0 = log_f0,
-              log_f1 = log_f1,
-              N = N,
-              Sigma = Sigma,
-              sigmaUnknown = sigmaUnknown,
-              m_init = m_init,
-              burnin = burnin
+          UIE_mat[b,] <- UIE_test(
+            X = X,
+            log_f0 = log_f0,
+            log_f1 = log_f1,
+            N = N,
+            Sigma = Sigma,
+            sigmaUnknown = sigmaUnknown,
+            m_init = m_init,
+            burnin = burnin
             )
 
-            GS_mat[b,] <- gs_run(
-              Nmax = N,
-              alphas = alphas,
-              n_looks = n_looks,
-              X = X[,1] - X[,2],
-              m_0 = 0,
-              side = side,
-              sigmaUnknown = sigmaUnknown,
-              sigma = if(!sigmaUnknown) sigmaGS else NULL
+          GS_mat[b,] <- gs_run(
+            Nmax = N,
+            alphas = alphas,
+            n_looks = n_looks,
+            X = X[,1] - X[,2],
+            m_0 = 0,
+            side = side,
+            sigmaUnknown = sigmaUnknown,
+            sigma = if(!sigmaUnknown) sigmaGS else NULL
             )
-        }
+          }
+
         # ----------------------------
         # AVERAGE OVER B
         # ----------------------------
         tibble::tibble(
-          m_t_true = m_t,
+          N = N,
 
           HCP_power = mean(HCP_mat[, 1]),
           HCP_ESS   = mean(HCP_mat[, 2]),
@@ -201,17 +206,23 @@ get_seq_test_comp_RCT_norm <- function(B,
     dplyr::bind_rows(results)
   }
 
+  # -------------------------------------------------
+  # Run simulations
+  # -------------------------------------------------
+
   set.seed(37238493)
-  # To parallelize
+
   future::plan(
     future::multisession,
     workers = parallel::detectCores() - 1
   )
 
-  res <- compare_tests(N = N, z_ag = z_agN)
-  res1 <- compare_tests(N = N1, z_ag = z_agN1)
-  df <- res
-  df1 <- res1
+  res6 <- compare_tests(m_t_true_values[1])
+  res8 <- compare_tests(m_t_true_values[2])
+
+  # -------------------------------------------------
+  # Clean names
+  # -------------------------------------------------
 
   clean_method_names <- function(x) {
 
@@ -228,28 +239,32 @@ get_seq_test_comp_RCT_norm <- function(B,
     x
   }
 
-  # Power plot
-  res$Design <- paste0("N = ", N)
-  res1$Design <- paste0("N = ", N1)
 
-  power_df <- bind_rows(res, res1) |>
+  res6$Scenario <- "m_T = 0.6"
+  res8$Scenario <- "m_T = 0.8"
+
+  # -------------------------------------------------
+  # Power plot
+  # -------------------------------------------------
+
+  power_df <- bind_rows(res6, res8) |>
     pivot_longer(
-      cols = c(HCP_power,
-               HW_power,
-               GS_power,
-               UIE_power),
+      cols = c(
+        HCP_power,
+        HW_power,
+        GS_power,
+        UIE_power
+      ),
       names_to = "Method",
       values_to = "Power"
     ) |>
-    mutate(Method = clean_method_names(Method))
+    mutate(
+      Method = clean_method_names(Method))
 
-  p2 <- ggplot(power_df,
-               aes(m_t_true, Power, colour = Method)) +
+  p_power <- ggplot(power_df, aes(N, Power, colour = Method)) +
     geom_line() +
-    facet_wrap(~Design, scales = "free_y") +
-    theme_minimal()+
-    geom_hline(aes(yintercept = alpha), linetype = 2)+
-    labs(x = expression(m[T]))+
+    facet_wrap(~Scenario, scales = "free") +
+    theme_minimal() +
     scale_color_manual(values = c("GS" = "darkgreen",
                                   "HCP" = "firebrick",
                                   "HW" = "steelblue",
@@ -257,26 +272,28 @@ get_seq_test_comp_RCT_norm <- function(B,
                        labels = c("GS" = "GS-test",
                                   "HCP" = "HCP-test",
                                   "HW" = "HW-test",
-                                  "UIE" = "UIE-test"))
+                                  "UIE" = "UIE-test"))+
+    scale_y_continuous(limits = c(0, 1))
 
+  # -------------------------------------------------
   # ESS plot
-  ESS_df <- bind_rows(res, res1) |>
+  # -------------------------------------------------
+
+  ESS_df <- bind_rows(res6, res8) |>
     pivot_longer(
-      cols = c(HCP_ESS,
-               HW_ESS,
-               GS_ESS,
-               UIE_ESS),
+      cols = c(
+        HCP_ESS,
+        HW_ESS,
+        UIE_ESS,
+        GS_ESS),
       names_to = "Method",
-      values_to = "ESS"
-    ) |>
+      values_to = "ESS") |>
     mutate(Method = clean_method_names(Method))
 
-  p3 <- ggplot(ESS_df,
-               aes(m_t_true, ESS, colour = Method)) +
+  p_ESS <- ggplot(ESS_df,aes(N, ESS, colour = Method)) +
     geom_line() +
-    facet_wrap(~Design, scales = "free_y") +
-    theme_minimal()+
-    labs(x = expression(m[T])) +
+    facet_wrap(~Scenario, scales = "free") +
+    theme_minimal() +
     scale_color_manual(values = c("GS" = "darkgreen",
                                   "HCP" = "firebrick",
                                   "HW" = "steelblue",
@@ -286,5 +303,12 @@ get_seq_test_comp_RCT_norm <- function(B,
                                   "HW" = "HW-test",
                                   "UIE" = "UIE-test"))
 
-  return(list(df = df, df1 = df1, p2 = p2, p3 = p3))
+  return(list(
+    res6 = res6,
+    res8 = res8,
+    p_power = p_power,
+    p_ESS = p_ESS
+  ))
 }
+
+
