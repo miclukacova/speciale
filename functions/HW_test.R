@@ -90,19 +90,19 @@ if(plot_process){
 
   # Data sampling function, quantile, function to calculate Q_n
   z_ag <- qbinom(p = 1 - (alpha * gamma), size = N, prob = m_0)
-  calc_q_n <- function(X, N) {
-    1 - pbinom(q = z_ag - cumsum(X), size = seq(N-1, 0), prob = m_0)
+  calc_q_n <- function(X, N, quanti) {
+    1 - pbinom(q = quanti - cumsum(X), size = seq(N-1, 0), prob = m_0)
   }
 
   # Run of test
   simulate_path <- function(m_true) {
     X <- rbinom(N, 1, m_true)
     run_HW_test(N = N,
-                    X = X,
-                    return_Q_n = TRUE,
-                    calc_q_n = calc_q_n,
-                    gamma = gamma,
-                    quanti = z_ag)
+                X = X,
+                return_Q_n = TRUE,
+                calc_q_n = calc_q_n,
+                gamma = gamma,
+                quanti = z_ag)
   }
 
   set.seed(4825)
@@ -125,14 +125,14 @@ if(plot_process){
   )
 
   df <- rbind(df_alt, df_null)
-  df <- df[df$Q_n > 0.005,]
+  df <- df[df$Q_n != 0,]
 
   p1 <- ggplot(df, aes(time, Q_n, group = path)) +
     geom_line(alpha = 0.4) +
     geom_hline(yintercept = gamma,
-               colour = "red",
+               colour = "firebrick",
                linetype = 2) +
-    scale_y_log10() +
+    scale_y_log10(limits = c(10^(-6), 1)) +
     theme_minimal() +
     facet_wrap(~ scenario, ncol = 2)
 }

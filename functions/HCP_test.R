@@ -107,7 +107,7 @@ if(plot_process){
   p1 <- ggplot(df, aes(time, HCP, group = path)) +
     geom_line(alpha = 0.4) +
     geom_hline(yintercept = 1 / alpha,
-               colour = "red",
+               colour = "firebrick",
                linetype = 2) +
     #geom_hline(yintercept = alpha,
     #           colour = "red",

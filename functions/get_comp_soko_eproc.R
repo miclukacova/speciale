@@ -198,7 +198,6 @@ get_comp_soko_eproc <- function(alpha,
   # Example path under alternative
   #------------------------------------------------
 
-  set.seed(3978435)
   n_rep = 10
   sim_one <- function(rep_id, lambda_star) {
     X <- sample_patient(N, p_t)
