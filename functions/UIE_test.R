@@ -39,7 +39,7 @@ UIE <- function(X, log_f0, log_f1, N, Sigma, sigmaUnknown, m_init, burnin) {
   # Calculate the e-process
   for(i in burnin:N){
 
-    if(sigmaUnknown & i > 2){
+    if(sigmaUnknown && i > 2){
       # Update variance estimate
       sigma_est_1 <- sigma_est
       sigma_est <- matrix(c(s2_1[i], s2_12[i], s2_12[i], s2_2[i]), ncol = 2)
@@ -61,7 +61,7 @@ UIE <- function(X, log_f0, log_f1, N, Sigma, sigmaUnknown, m_init, burnin) {
     }
 
     # Compute the log e-values
-    logE[i] <- sum(f1s[1:i] - f0s)
+    logE[i] <- sum(f1s[burnin:i] - f0s[burnin:i])
   }
 
   if(!any(is.finite(f1s))) stop("log(f1) is infinite")

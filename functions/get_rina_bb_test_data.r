@@ -1,5 +1,10 @@
-get_rina_bb_test_data <- function(alpha = 0.05, taus = seq(0.3,1, by = 0.01),
-                                  B = 10000, N = 5000, n = 500, loss, alg){
+get_rina_bb_test_data <- function(alpha,
+                                  taus,
+                                  B,
+                                  N,
+                                  n,
+                                  loss,
+                                  alg){
   #-------------------------------------------------------------------------------
   ### Rina Barber paper - Binomial example
   #-------------------------------------------------------------------------------
@@ -12,6 +17,7 @@ get_rina_bb_test_data <- function(alpha = 0.05, taus = seq(0.3,1, by = 0.01),
   test_res <- c()
 
   for(tau in taus){
+    print(i)
     k_star <- -1
     a_star <- -1
     while(a_star < 0 | a_star > 1){

@@ -4,7 +4,7 @@ get_OLS_plot_risk <- function(OLS_risk, tau = 0.5){
   df <- OLS_risk[[2]]
 
   plot <- ggplot(df)+
-    geom_line(aes(x=ms, y = risk), linewidth = 2, color = "firebrick")+
+    geom_line(aes(x=ms, y = risk), color = "firebrick")+
     xlab(expression(m))+
     labs(x = expression(m), y = "Estimate of Risk")+
     geom_hline(yintercept = tau, color = "black", linetype = 2)+

@@ -48,32 +48,39 @@ list(
   tar_target(
     name = OLS_rej_prob_plot,
     command = get_OLS_rej_prob_plot(data = OLS_risk,
+                                    data2 = OLS_rej_prob,
                                     tau = 0.5,
                                     alpha = alpha,
                                     N = 2500,
                                     n = 500)),
 
-  # CV test TO DO: fix this
+  # CV test
   tar_target(
     name = cv_test_data,
     command = get_cv_test_data(taus = seq(0.85,1.2, by = 0.005),
                                B = B,
-                               N = 500, K = 5,
-                               loss = loss_bin, alg = lm_alg)),
+                               N = 500,
+                               K = 5,
+                               loss = loss_sq_error,
+                               alg = lm_alg)),
 
-  # CV test plot  TO DO: fix this
+  # CV test plot
   tar_target(
     name = cv_test_plot,
-    command = get_cv_test_plot(cv_test_data)),
+    command = get_cv_test_plot(cv_test_data,
+                               B = B,
+                               alg = lm_alg,
+                               loss = loss_sq_error,
+                               N = 500)),
 
-  # TO DO: fix this
+  # BB test data
   tar_target(
     name = rina_bb_test_data,
     command = get_rina_bb_test_data(alpha = alpha,
-                                    taus = seq(0.3,1, by = 0.01),
+                                    taus = seq(0.35,1, by = 0.02),
                                     B = B,
-                                    N = 2500,
-                                    n = 500,
+                                    N = 500,
+                                    n = 400,
                                     loss = loss_bin,
                                     alg = lm_alg)),
 
@@ -81,9 +88,11 @@ list(
   tar_target(
     name = rina_bb_test_plot,
     command = get_rina_bb_test_plot(rina_bb_test_data,
+                                    taus = seq(0.3,1, by = 0.01),
+                                    alpha = alpha,
                                     B = B,
-                                    N = 2500,
-                                    n = 500)),
+                                    N = 500,
+                                    n = 400)),
 
   #---------------------------------------------
   # Sequential tests
@@ -160,10 +169,10 @@ list(
 
 
   #---------------------------------------------
-  # Comparing sequential testing in a normal example
+  # Comparing sequential testing in a gaussian setting
   #---------------------------------------------
+  # Unknown variance
 
-  # Comparing sequential testing in a normal example with unknown variance
   ## Function outputs power and ESS comparisons as function of M_T
   tar_target(
     name = seq_test_comp_RCT_norm,
@@ -196,18 +205,27 @@ list(
                                            theta = 1 / 2,
                                            alpha = alpha,
                                            gamma = 0.9,
-                                           n_looks = 20))
+                                           n_looks = 20)),
 
-  # Comparing sequential testing in a normal example with unknown variance
+  #---------------------------------------------
+  # Unknown variance
   ## Function outputs power and ESS comparisons as function of M_T
-  #tar_target(
-  #  name = seq_test_comp_RCT_norm_unknown_sigma,
-  #  command = get_seq_test_comp_RCT_norm(B = B,
-  #                                       N = 100,
-  #                                       N1 = 200,
-  #                                       Sigma = matrix(c(1,0.4,0.4,2), ncol = 2),
-  #                                       side = 2,
-  #                                       sigmaUnknown = TRUE))
+  tar_target(
+    name = seq_test_comp_RCT_norm_unknown_sigma,
+    command = get_seq_test_comp_RCT_norm(B = 200,
+                                         N = 100,
+                                         N1 = 200,
+                                         Sigma = matrix(c(1,0.4,0.4,2), ncol = 2),
+                                         side = 2,
+                                         sigmaUnknown = TRUE,
+                                         burnin = 10,
+                                         m_init = 0.3,
+                                         m = 0.3,
+                                         c = 3 / 4,
+                                         theta = 1 / 2,
+                                         alpha = alpha,
+                                         gamma = 0.9,
+                                         n_looks = 20))
 
   ## Function outputs power and ESS comparisons as function of N
   ## TO DO

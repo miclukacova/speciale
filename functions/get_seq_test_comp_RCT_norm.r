@@ -89,13 +89,43 @@ get_seq_test_comp_RCT_norm <- function(B,
 
     # We cannot calculate Q_n analytically as we do not have the null distribution, we have to sample from
     # the estimated null
-    sample_data_null <- function(N, X) {
+
+    sample_data_null <- function(N, X, B) {
+
       sigma_est <- sd(X)
-      X_boot <- rnorm(N, 0, sd = sigma_est)
-      T_N_n <- mean(c(X, X_boot)) / sd(c(X, X_boot)) * sqrt(length(c(X, X_boot)))
-      if(side == 2)  T_N_n <- abs(T_N_n)
-      return(T_N_n)
+
+      # Generate all bootstrap samples simultaneously
+      X_boot <- matrix(
+        rnorm(N * B, mean = 0, sd = sigma_est),
+        nrow = N
+      )
+
+      # Sum of observed data
+      sum_X <- sum(X)
+
+      # Bootstrap means
+      totals <- colSums(X_boot) + sum_X
+      n_total <- length(X) + N
+
+      # Standard deviations
+      SDs <- apply(
+        rbind(matrix(X, nrow = length(X), ncol = B), X_boot),
+        2,
+        sd
+      )
+
+      if(side == 2) totals <- abs(totals)
+
+      totals / SDs / sqrt(n_total)
     }
+
+    #sample_data_null <- function(N, X) {
+    #  sigma_est <- sd(X)
+    #  X_boot <- rnorm(N, 0, sd = sigma_est)
+    #  T_N_n <- mean(c(X, X_boot)) / sd(c(X, X_boot)) * sqrt(length(c(X, X_boot)))
+    #  if(side == 2)  T_N_n <- abs(T_N_n)
+    #  return(T_N_n)
+    #}
 
     calc_q_n <- NULL
   } else {
@@ -128,35 +158,47 @@ get_seq_test_comp_RCT_norm <- function(B,
         m_t <- m_t_true_grid[g]
         mu_true <- c(m_t, m)
 
-        HCP_mat <- matrix(0, B, 2)
-        HW_mat  <- matrix(0, B, 2)
-        UIE_mat <- matrix(0, B, 2)
-        GS_mat  <- matrix(0, B, 2)
+        HCP_rej <- 0
+        HW_rej  <- 0
+        UIE_rej <- 0
+        GS_rej  <- 0
+        HCP_ess <- 0
+        HW_ess  <- 0
+        UIE_ess <- 0
+        GS_ess  <- 0
 
         bigX <- sample_patient(N * B, mu_true)
 
         for(b in seq_len(B)) {
-            X <- bigX[(N * (b - 1) + 1):(b * N),]
 
-            HCP_mat[b,] <- run_HCP_test(
+            # Data
+            X <- bigX[(N * (b - 1) + 1):(b * N),]
+            D <- X[, 1] - X[, 2]
+            D_scaled <- (D + 5) / 10
+
+            out <- run_HCP_test(
               m_0 = 1 / 2,
               c = c,
-              X = (X[,1] - X[,2] + 5) / 10,
+              X = D_scaled,
               theta = theta,
               alpha = alpha
             )
 
-            HW_mat[b,] <- run_HW_test(
+            HCP_rej <- HCP_rej + out[1]; HCP_ess <- HCP_ess + out[2]
+
+            out <- run_HW_test(
               N = N,
-              X = X[,1] - X[,2],
+              X = D,
               calc_q_n = calc_q_n,
               sample_data_null = sample_data_null,
               gamma = gamma,
               quanti = z_ag,
-              B = B
+              B = 100
             )
 
-            UIE_mat[b,] <- UIE_test(
+            HW_rej <- HW_rej + out[1]; HW_ess <- HW_ess + out[2]
+
+            out <- UIE_test(
               X = X,
               log_f0 = log_f0,
               log_f1 = log_f1,
@@ -167,16 +209,20 @@ get_seq_test_comp_RCT_norm <- function(B,
               burnin = burnin
             )
 
-            GS_mat[b,] <- gs_run(
+            UIE_rej <- UIE_rej + out[1]; UIE_ess <- UIE_ess + out[2]
+
+            out <- gs_run(
               Nmax = N,
               alphas = alphas,
               n_looks = n_looks,
-              X = X[,1] - X[,2],
+              X = D,
               m_0 = 0,
               side = side,
               sigmaUnknown = sigmaUnknown,
               sigma = if(!sigmaUnknown) sigmaGS else NULL
             )
+
+            GS_rej <- GS_rej + out[1]; GS_ess <- GS_ess + out[2]
         }
         # ----------------------------
         # AVERAGE OVER B
@@ -184,17 +230,17 @@ get_seq_test_comp_RCT_norm <- function(B,
         tibble::tibble(
           m_t_true = m_t,
 
-          HCP_power = mean(HCP_mat[, 1]),
-          HCP_ESS   = mean(HCP_mat[, 2]),
+          HCP_power = HCP_rej / B,
+          HCP_ESS   = HCP_ess / B,
 
-          UIE_power = mean(UIE_mat[, 1]),
-          UIE_ESS   = mean(UIE_mat[, 2]),
+          UIE_power = UIE_rej / B,
+          UIE_ESS   = UIE_ess / B,
 
-          HW_power  = mean(HW_mat[, 1]),
-          HW_ESS    = mean(HW_mat[, 2]),
+          HW_power  = HW_rej / B,
+          HW_ESS    = HW_ess / B,
 
-          GS_power  = mean(GS_mat[, 1]),
-          GS_ESS    = mean(GS_mat[, 2])
+          GS_power  = GS_rej / B,
+          GS_ESS    = GS_ess / B
         )
       },
       future.seed = TRUE

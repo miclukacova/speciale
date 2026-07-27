@@ -14,29 +14,21 @@ gs_run <- function(Nmax,
   # Information times / looks
   look_times <- round(seq(Nmax / n_looks, Nmax, length.out = n_looks))
 
-  # Incremental sample sizes at each stage
-  n_k <- c(look_times[1], diff(look_times))
+  cs  <- cumsum(X)
+  cs2 <- cumsum(X^2)
 
-  # For storage
-  Z_k_star <- vector()
+  Xbar_k <- cs[look_times] / look_times
 
-  # Compute cumulative statistics
-  for(k in 1:n_looks) {
-
-    # Observations up to look k
-    X_k <- X[1:look_times[k]]
-
-    # Cumulative means
-    Xbar_k <- mean(X_k)
-
-    # Cumulative variance estimate
-    if(sigmaUnknown) sigma_hat_k <- sqrt(1 / (look_times[k] - 1) * sum((X_k - Xbar_k)^2))
-    else sigma_hat_k <- sigma
-    if(sigma_hat_k == 0) warning("Variance estimate is 0")
-
-    # Z_k_star
-    Z_k_star[k] <- (Xbar_k - m_0) / sigma_hat_k * sqrt(look_times[k])
+  if (sigmaUnknown) {
+    var_k <- (cs2[look_times] - cs[look_times]^2 / look_times) /
+      (look_times - 1)
+    sigma_hat_k <- sqrt(var_k)
+  } else {
+    sigma_hat_k <- rep(sigma, length(look_times))
   }
+
+  # Z_k_star
+  Z_k_star <- (Xbar_k - m_0) / sigma_hat_k * sqrt(look_times)
 
   # If we do not know sigma, we need to correct with the t distribution
   if(sigmaUnknown) alphas <- qt(p = pnorm(alphas), df = look_times - 1)
@@ -57,7 +49,7 @@ gs_run <- function(Nmax,
 alphas_soko <- function(p_c, n_looks, Nmax, B = 10^4, alpha = 0.05) {
 
   # Define quantities
-  look_times <- round(seq(Nmax/n_looks, Nmax, length.out = n_looks))
+  look_times <- round(seq(Nmax / n_looks, Nmax, length.out = n_looks))
   info_frac <- look_times/Nmax
 
   # Sample data

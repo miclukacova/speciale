@@ -18,17 +18,25 @@ run_HW_test <- function(N,
     Q_n <- vector(length = N)
     i <- 2
     while(i <= (N-1) & all(Q_n < gamma)) {
-      boot_data <- numeric(B)
-      boot_data <- numeric(B)
-      for(b in seq_len(B))
-        boot_data[b] <- sample_data_null(
-          N = N - i,
-          X = X[1:i]
-        )
+      boot_data <- sample_data_null(
+        N = N - i,
+        X = X[1:i],
+        B = B
+      )
       Q_n[i] <- mean(boot_data >= quanti)
+
+      #boot_data <- numeric(B)
+      #boot_data <- numeric(B)
+      #for(b in seq_len(B))
+      #  boot_data[b] <- sample_data_null(
+      #    N = N - i,
+      #    X = X[1:i]
+      #  )
+      #Q_n[i] <- mean(boot_data >= quanti)
       i <- i + 1
     }
-    Q_n[N] <- sample_data_null(N = N, X = X) > quanti
+
+    Q_n[N] <- sample_data_null(N = N, X = X, B) > quanti
 
   } else {
     Q_n <- calc_q_n(X, N, quanti)
