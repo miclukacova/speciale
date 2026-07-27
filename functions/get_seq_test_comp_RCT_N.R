@@ -134,6 +134,9 @@ get_seq_test_comp_RCT_N <- function(B,
 
   compare_tests <- function(p_t_true) {
 
+    # Sample all patients
+    maxN <- max(N_grid)
+    bigX <- sample_patient(maxN * B, p_t_true)
     results <- vector("list", length(N_grid))
 
     for (g in seq_along(N_grid)) {
@@ -144,16 +147,16 @@ get_seq_test_comp_RCT_N <- function(B,
           " N =", N, "\n")
 
       z_ag <- z_ag_lookup[g]
-
-      sample_data <- function(N) sample_patient(N, p_t_true)
-
       n_sprt <- length(p_t_values)
 
       sim_results <- future_lapply(
         seq_len(B),
         function(b) {
 
-          X <- sample_data(N)
+          # Find data
+          first <- (b - 1) * maxN + 1
+          last  <- first + N - 1
+          X <- bigX[first:last]
 
           # -------------------------
           # HCP

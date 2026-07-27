@@ -124,7 +124,11 @@ get_seq_test_comp_RCT_norm_N <- function(B,
   # -------------------------------------------------
 
   compare_tests <- function(m_T) {
+
+    # Sample all patients
     mu_true <- c(m_T, m)
+    maxN <- max(N_grid)
+    bigX <- sample_patient(maxN * B, mu_true)
 
     results <- future.apply::future_lapply(
       seq_along(N_grid),
@@ -138,7 +142,11 @@ get_seq_test_comp_RCT_norm_N <- function(B,
         GS_mat  <- matrix(0, B, 2)
 
         for(b in seq_len(B)){
-          X <- sample_patient(N, mu_true)
+
+          # Find data
+          first <- (b - 1) * maxN + 1
+          last  <- first + N - 1
+          X <- bigX[first:last,]
 
           HCP_mat[b,] <- run_HCP_test(
             m_0 = 1 / 2,
@@ -272,8 +280,7 @@ get_seq_test_comp_RCT_norm_N <- function(B,
                        labels = c("GS" = "GS-test",
                                   "HCP" = "HCP-test",
                                   "HW" = "HW-test",
-                                  "UIE" = "UIE-test"))+
-    scale_y_continuous(limits = c(0, 1))
+                                  "UIE" = "UIE-test"))
 
   # -------------------------------------------------
   # ESS plot

@@ -133,8 +133,10 @@ get_seq_test_comp_RCT_norm <- function(B,
         UIE_mat <- matrix(0, B, 2)
         GS_mat  <- matrix(0, B, 2)
 
+        bigX <- sample_patient(N * B, mu_true)
+
         for(b in seq_len(B)) {
-            X <- sample_patient(N, mu_true)
+            X <- bigX[(N * (b - 1) + 1):(b * N),]
 
             HCP_mat[b,] <- run_HCP_test(
               m_0 = 1 / 2,
