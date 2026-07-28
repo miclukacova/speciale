@@ -36,7 +36,7 @@ run_HW_test <- function(N,
       i <- i + 1
     }
 
-    Q_n[N] <- sample_data_null(N = N, X = X, B) > quanti
+    Q_n[N] <- mean(sample_data_null(N = N, X = X, B) > quanti)
 
   } else {
     Q_n <- calc_q_n(X, N, quanti)

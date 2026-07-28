@@ -3,15 +3,18 @@ UIE <- function(X, log_f0, log_f1, N, Sigma, sigmaUnknown, m_init, burnin) {
   # Storage
   logE <- vector(length = N)
   f1s <- vector(length = N)
+  m0_est <- numeric(N)
 
-  # Estimates
+  # Estimates under alternative
   # Mean
   i <- 1:N
   mT_est  <- cumsum(X[,1]) / i
   mC_est  <- cumsum(X[,2]) / i
-  m0_est <- (cumsum(X) / (1:(2 * N)))[seq(2, 2 * N, by = 2)]
+  # Since the f1 process should be predictable we add an initial mT and mC value
+  mT_est  <- c(m_init, mT_est)
+  mC_est  <- c(m_init, mC_est)
 
-  # Variance covariance matrix
+  # Estimates of m_0 and variance covariance matrix
   if(sigmaUnknown){
     # Moments
     mT2_est <- cumsum(X[,1]^2) / i
@@ -26,15 +29,21 @@ UIE <- function(X, log_f0, log_f1, N, Sigma, sigmaUnknown, m_init, burnin) {
     # Initialize
     sigma_est <- diag(2)
     sigma_est_1 <-  diag(2)
+    m0_est[1] <-  as.numeric(t(one) %*% Sigma_inv %*% mean(X[1,])) / denom
 
   } else {
     sigma_est <- Sigma
     sigma_est_1 <- Sigma
-  }
 
-  # Since the f1 process should be predictable we add an initial mT and mC value
-  mT_est  <- c(m_init, mT_est)
-  mC_est  <- c(m_init, mC_est)
+    one <- c(1, 1)
+    Sigma_inv <- solve(Sigma)
+    denom <- as.numeric(t(one) %*% Sigma_inv %*% one)
+
+    for(i in seq_len(N)) {
+      xbar <- c(mT_est[i + 1], mC_est[i + 1])
+      m0_est[i] <- as.numeric(t(one) %*% Sigma_inv %*% xbar) / denom
+    }
+  }
 
   # Calculate the e-process
   for(i in burnin:N){
@@ -43,6 +52,12 @@ UIE <- function(X, log_f0, log_f1, N, Sigma, sigmaUnknown, m_init, burnin) {
       # Update variance estimate
       sigma_est_1 <- sigma_est
       sigma_est <- matrix(c(s2_1[i], s2_12[i], s2_12[i], s2_2[i]), ncol = 2)
+
+      # Updating m_0 estimate
+      Sigma_inv <- solve(sigma_est)
+      denom <- as.numeric(t(one) %*% Sigma_inv %*% one)
+      xbar <- c(mT_est[i + 1], mC_est[i + 1])
+      m0_est[i] <- as.numeric(t(one) %*% Sigma_inv %*% xbar) / denom
     }
 
     # Compute the predictable density estimate evaluated in the newest observation
@@ -65,6 +80,7 @@ UIE <- function(X, log_f0, log_f1, N, Sigma, sigmaUnknown, m_init, burnin) {
   }
 
   if(!any(is.finite(f1s))) stop("log(f1) is infinite")
+  logE[1:(burnin - 1)] <- 1
   logE
 }
 

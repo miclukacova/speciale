@@ -10,7 +10,6 @@ if(FALSE){
 
 get_seq_test_comp_RCT_norm <- function(B,
                                        N,
-                                       N1,
                                        Sigma,
                                        side,
                                        burnin,
@@ -42,25 +41,15 @@ get_seq_test_comp_RCT_norm <- function(B,
   # -----------------------------------------------------------
   # UIE
   # -----------------------------------------------------------
+  # Estimator of density in the null
 
-  # In case Sigma does not change, we can compute the density faster
-  R <- chol(Sigma)
-  Sigma_inv <- chol2inv(R)
-  log_det <- 2 * sum(log(diag(R)))
-  d <- nrow(Sigma)
-
-  log_dmvnorm_fast <- function(X, mu){
-    Z <- sweep(X, 2, mu)
-    quad <- rowSums((Z %*% Sigma_inv) * Z)
-    -0.5 * (d * log(2*pi) + log_det + quad)
+  log_f0 <- function(X, mu_est, sigma_est) {
+    mvtnorm::dmvnorm(X, mean = c(mu_est, mu_est), sigma = sigma_est, log = TRUE)
   }
 
   # Estimator of density in the alternative
   log_f1 <- function(X, mT_est, mC_est, sigma_est) {
-    log_dmvnorm_fast(X, mu = c(mT_est, mC_est))
-  }
-  log_f0 <- function(X, mu_est, sigma_est) {
-    log_dmvnorm_fast(X, mu = c(mu_est, mu_est))
+    mvtnorm::dmvnorm(X, mean = c(mT_est, mC_est), sigma = sigma_est, log = TRUE)
   }
 
 
@@ -68,20 +57,41 @@ get_seq_test_comp_RCT_norm <- function(B,
   # Precompute HW critical values and Q_n calculating function
   # -----------------------------------------------------------
 
-  # We use the mean of the D's as test statistic
-  sigma_D_N <- sqrt(1 / N * (Sigma[1,1] + Sigma[2,2] - 2 * Sigma[1,2]))
-  sigma_D_N1 <- sqrt(1 / N1 * (Sigma[1,1] + Sigma[2,2] - 2 * Sigma[1,2]))
-  z_agN <- qnorm(p = 1 - alpha * gamma / side, mean = 0, sd = sigma_D_N)
-  z_agN1 <- qnorm(p = 1 - alpha * gamma / side, mean = 0, sd = sigma_D_N1)
+  # If sigma is unknown, we need an alternative approach to calculate Q_n,
+  # we follow the approach outlined in Holmes section 11
 
+  # In this case we use the t-test statistic, and use that it follows a normal distribution
+  z_agN <- qt(p = 1 - alpha * gamma / side, df = N - 1)
 
-  sigmas <- sqrt(1 / N ^ 2 * (N - 1:N) * (Sigma[1,1] + Sigma[2,2] - 2 * Sigma[1,2]))
-  calc_q_n <- function(X, N, z_ag) {
-    meanss <- 1 / N * cumsum(X)
-    1 - pnorm(z_ag, meanss, sigmas) + pnorm(- z_ag, meanss, sigmas)
+  # We cannot calculate Q_n analytically as we do not have the null distribution, we have to sample from
+  # the estimated null
+  sample_data_null <- function(N, X, B) {
+    sigma_est <- sd(X)
+
+    # Generate all bootstrap samples simultaneously
+    X_boot <- matrix(
+      rnorm(N * B, mean = 0, sd = sigma_est),
+      nrow = N
+    )
+
+    # Sum of observed data
+    sum_X <- sum(X)
+
+    # Bootstrap means
+    totals <- colSums(X_boot) + sum_X
+    n_total <- length(X) + N
+
+    # Standard deviations
+    SDs <- apply(
+      rbind(matrix(X, nrow = length(X), ncol = B), X_boot),
+      2,
+      sd
+    )
+
+    if(side == 2) totals <- abs(totals)
+    totals / SDs / sqrt(n_total)
   }
 
-  sample_data_null <- NULL
 
   #-------------------------------------------------------------------------------
   ## Comparisons
@@ -142,7 +152,7 @@ get_seq_test_comp_RCT_norm <- function(B,
               log_f1 = log_f1,
               N = N,
               Sigma = Sigma,
-              sigmaUnknown = FALSE,
+              sigmaUnknown = TRUE,
               m_init = m_init,
               burnin = burnin
             )
@@ -156,8 +166,8 @@ get_seq_test_comp_RCT_norm <- function(B,
               X = D,
               m_0 = 0,
               side = side,
-              sigmaUnknown = FALSE,
-              sigma = sigmaGS
+              sigmaUnknown = TRUE,
+              sigma = NULL
             )
 
             GS_rej <- GS_rej + out[1]; GS_ess <- GS_ess + out[2]
@@ -195,9 +205,7 @@ get_seq_test_comp_RCT_norm <- function(B,
   )
 
   res <- compare_tests(N = N, z_ag = z_agN)
-  res1 <- compare_tests(N = N1, z_ag = z_agN1)
   df <- res
-  df1 <- res1
 
   clean_method_names <- function(x) {
 
@@ -215,10 +223,8 @@ get_seq_test_comp_RCT_norm <- function(B,
   }
 
   # Power plot
-  res$Design <- paste0("N = ", N)
-  res1$Design <- paste0("N = ", N1)
 
-  power_df <- bind_rows(res, res1) |>
+  power_df <- res |>
     pivot_longer(
       cols = c(HCP_power,
                HW_power,

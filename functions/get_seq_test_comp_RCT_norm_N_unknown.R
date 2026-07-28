@@ -11,6 +11,7 @@ if(FALSE){
 get_seq_test_comp_RCT_norm_N <- function(B,
                                          Sigma,
                                          side,
+                                         sigmaUnknown,
                                          burnin,
                                          m_init,
                                          m,
@@ -37,25 +38,35 @@ get_seq_test_comp_RCT_norm_N <- function(B,
   # UIE
   # -----------------------------------------------------------
   # Estimator of density in the null
-  # In case Sigma does not change, we can compute the density faster
-  R <- chol(Sigma)
-  Sigma_inv <- chol2inv(R)
-  log_det <- 2 * sum(log(diag(R)))
-  d <- nrow(Sigma)
+  if(sigmaUnknown){
+    log_f0 <- function(X, mu_est, sigma_est) {
+      mvtnorm::dmvnorm(X, mean = c(mu_est, mu_est), sigma = sigma_est, log = TRUE)
+    }
 
-  log_dmvnorm_fast <- function(X, mu){
-    Z <- sweep(X, 2, mu)
-    quad <- rowSums((Z %*% Sigma_inv) * Z)
-    -0.5 * (d * log(2*pi) + log_det + quad)
-  }
+    # Estimator of density in the alternative
+    log_f1 <- function(X, mT_est, mC_est, sigma_est) {
+      mvtnorm::dmvnorm(X, mean = c(mT_est, mC_est), sigma = sigma_est, log = TRUE)
+    }
+  } else {
+    # In case Sigma does not change, we can compute the density faster
+    R <- chol(Sigma)
+    Sigma_inv <- chol2inv(R)
+    log_det <- 2 * sum(log(diag(R)))
+    d <- nrow(Sigma)
 
-  # Estimator of density in the alternative
-  log_f1 <- function(X, mT_est, mC_est, sigma_est) {
-    log_dmvnorm_fast(X, mu = c(mT_est, mC_est))
-  }
+    log_dmvnorm_fast <- function(X, mu){
+      Z <- sweep(X, 2, mu)
+      quad <- rowSums((Z %*% Sigma_inv) * Z)
+      -0.5 * (d * log(2*pi) + log_det + quad)
+    }
 
-  log_f0 <- function(X, mu_est, sigma_est) {
-    log_dmvnorm_fast(X, mu = c(mu_est, mu_est))
+    # Estimator of density in the alternative
+    log_f1 <- function(X, mT_est, mC_est, sigma_est) {
+      log_dmvnorm_fast(X, mu = c(mT_est, mC_est))
+    }
+    log_f0 <- function(X, mu_est, sigma_est) {
+      log_dmvnorm_fast(X, mu = c(mu_est, mu_est))
+    }
   }
 
   # -----------------------------------------------------------
@@ -63,19 +74,39 @@ get_seq_test_comp_RCT_norm_N <- function(B,
   # -----------------------------------------------------------
   cat("Precomputing critical values...\n")
 
-  # We use the mean of the D's as test statistic
-  sigma_D_N <- sqrt(1 / N_grid * (Sigma[1,1] + Sigma[2,2] - 2 * Sigma[1,2]))
-  z_agN <- qnorm(p = 1 - alpha * gamma / side, mean = 0, sd = sigma_D_N)
-  N_max <- max(N_grid)
-  sigmas_lookup <- sqrt(1 / N_max ^ 2 * (N_max - 1:N_max) * (Sigma[1,1] + Sigma[2,2] - 2 * Sigma[1,2]))
+  # If sigma is unknown, we need an alternative approach to calculate Q_n,
+  # we follow the approach outlined in Holmes section 11
+  if(sigmaUnknown){
+    # In this case we use the t-test statistic, and use that it follows a normal distribution
+    z_agN <- qt(p = 1 - alpha * gamma / side, df = N - 1)
+    z_agN1 <- qt(p = 1 - alpha * gamma / side, df = N1 - 1)
 
-  calc_q_n <- function(X, N, z_ag) {
+    # We cannot calculate Q_n analytically as we do not have the null distribution, we have to sample from
+    # the estimated null
+    sample_data_null <- function(N, X) {
+      sigma_est <- sd(X)
+      X_boot <- rnorm(N, 0, sd = sigma_est)
+      T_N_n <- mean(c(X, X_boot)) / sd(c(X, X_boot)) * sqrt(length(c(X, X_boot)))
+      if(side == 2)  T_N_n <- abs(T_N_n)
+      return(T_N_n)
+    }
 
-    meanss <- 1 / N * cumsum(X)
-    1 - pnorm(z_ag, meanss, sigmas_lookup[1:N]) + pnorm(- z_ag, meanss, sigmas_lookup[1:N])
+    calc_q_n <- NULL
+  } else {
+    # We use the mean of the D's as test statistic
+    sigma_D_N <- sqrt(1 / N_grid * (Sigma[1,1] + Sigma[2,2] - 2 * Sigma[1,2]))
+    z_agN <- qnorm(p = 1 - alpha * gamma / side, mean = 0, sd = sigma_D_N)
+    N_max <- max(N_grid)
+    sigmas_lookup <- sqrt(1 / N_max ^ 2 * (N_max - 1:N_max) * (Sigma[1,1] + Sigma[2,2] - 2 * Sigma[1,2]))
+
+    calc_q_n <- function(X, N, z_ag) {
+
+      meanss <- 1 / N * cumsum(X)
+      1 - pnorm(z_ag, meanss, sigmas_lookup[1:N]) + pnorm(- z_ag, meanss, sigmas_lookup[1:N])
+    }
+
+    sample_data_null <- NULL
   }
-
-  sample_data_null <- NULL
 
   # -----------------------------------------------------------
   # GS critical values and sigma if not unknown
@@ -105,14 +136,10 @@ get_seq_test_comp_RCT_norm_N <- function(B,
         print(g)
         N <- N_grid[g]
 
-        HCP_rej <- 0
-        HW_rej  <- 0
-        UIE_rej <- 0
-        GS_rej  <- 0
-        HCP_ess <- 0
-        HW_ess  <- 0
-        UIE_ess <- 0
-        GS_ess  <- 0
+        HCP_mat <- matrix(0, B, 2)
+        HW_mat  <- matrix(0, B, 2)
+        UIE_mat <- matrix(0, B, 2)
+        GS_mat  <- matrix(0, B, 2)
 
         for(b in seq_len(B)){
 
@@ -121,7 +148,7 @@ get_seq_test_comp_RCT_norm_N <- function(B,
           last  <- first + N - 1
           X <- bigX[first:last,]
 
-          out <- run_HCP_test(
+          HCP_mat[b,] <- run_HCP_test(
             m_0 = 1 / 2,
             c = c,
             X = (X[,1] - X[,2] + 5) / 10,
@@ -129,9 +156,7 @@ get_seq_test_comp_RCT_norm_N <- function(B,
             alpha = alpha
             )
 
-          HCP_rej <- out[1] + HCP_rej; HCP_ess <- out[2] + HCP_ess
-
-          out <- run_HW_test(
+          HW_mat[b,] <- run_HW_test(
             N = N,
             X = X[,1] - X[,2],
             calc_q_n = calc_q_n,
@@ -141,34 +166,28 @@ get_seq_test_comp_RCT_norm_N <- function(B,
             B = B
             )
 
-          HW_rej <- out[1] + HW_rej; HW_ess <- out[2] + HW_ess
-
-          out <- UIE_test(
+          UIE_mat[b,] <- UIE_test(
             X = X,
             log_f0 = log_f0,
             log_f1 = log_f1,
             N = N,
             Sigma = Sigma,
-            sigmaUnknown = FALSE,
+            sigmaUnknown = sigmaUnknown,
             m_init = m_init,
             burnin = burnin
             )
 
-          UIE_rej <- out[1] + UIE_rej; UIE_ess <- out[2] + UIE_ess
-
-          out <- gs_run(
+          GS_mat[b,] <- gs_run(
             Nmax = N,
             alphas = alphas,
             n_looks = n_looks,
             X = X[,1] - X[,2],
             m_0 = 0,
             side = side,
-            sigmaUnknown = FALSE,
-            sigma = sigmaGS
+            sigmaUnknown = sigmaUnknown,
+            sigma = if(!sigmaUnknown) sigmaGS else NULL
             )
-
-          GS_rej <- out[1] + GS_rej; GS_ess <- out[2] + GS_ess
-        }
+          }
 
         # ----------------------------
         # AVERAGE OVER B
@@ -176,17 +195,17 @@ get_seq_test_comp_RCT_norm_N <- function(B,
         tibble::tibble(
           N = N,
 
-          HCP_power = HCP_rej / B,
-          HCP_ESS   = HCP_ess / B,
+          HCP_power = mean(HCP_mat[, 1]),
+          HCP_ESS   = mean(HCP_mat[, 2]),
 
-          UIE_power = UIE_rej / B,
-          UIE_ESS   = UIE_ess / B,
+          UIE_power = mean(UIE_mat[, 1]),
+          UIE_ESS   = mean(UIE_mat[, 2]),
 
-          HW_power  = HW_rej / B,
-          HW_ESS    = HW_ess / B,
+          HW_power  = mean(HW_mat[, 1]),
+          HW_ESS    = mean(HW_mat[, 2]),
 
-          GS_power  = GS_rej / B,
-          GS_ESS    = GS_ess / B
+          GS_power  = mean(GS_mat[, 1]),
+          GS_ESS    = mean(GS_mat[, 2])
         )
       },
       future.seed = TRUE
