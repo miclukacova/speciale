@@ -1,5 +1,9 @@
 get_SD_ESS_bern <- function(){
   if(FALSE){
+    source("~/Desktop/Uni/Speciale/speciale/functions/GS_test.R")
+    source("~/Desktop/Uni/Speciale/speciale/functions/HCP_test.R")
+    source("~/Desktop/Uni/Speciale/speciale/functions/HW_test.R")
+    source("~/Desktop/Uni/Speciale/speciale/functions/SPRT.R")
     library(tidyverse)
     library(dplyr)
     library(ggplot2)
