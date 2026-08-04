@@ -10,9 +10,6 @@ UIE <- function(X, log_f0, log_f1, N, Sigma, sigmaUnknown, m_init, burnin) {
   i <- 1:N
   mT_est  <- cumsum(X[,1]) / i
   mC_est  <- cumsum(X[,2]) / i
-  # Since the f1 process should be predictable we add an initial mT and mC value
-  mT_est  <- c(m_init, mT_est)
-  mC_est  <- c(m_init, mC_est)
 
   # Estimates of m_0 and variance covariance matrix
   if(sigmaUnknown){
@@ -29,7 +26,8 @@ UIE <- function(X, log_f0, log_f1, N, Sigma, sigmaUnknown, m_init, burnin) {
     # Initialize
     sigma_est <- diag(2)
     sigma_est_1 <-  diag(2)
-    m0_est[1] <-  as.numeric(t(one) %*% Sigma_inv %*% mean(X[1,])) / denom
+    one <- c(1, 1)
+    m0_est[1] <- mean(X[1,])
 
   } else {
     sigma_est <- Sigma
@@ -40,10 +38,14 @@ UIE <- function(X, log_f0, log_f1, N, Sigma, sigmaUnknown, m_init, burnin) {
     denom <- as.numeric(t(one) %*% Sigma_inv %*% one)
 
     for(i in seq_len(N)) {
-      xbar <- c(mT_est[i + 1], mC_est[i + 1])
+      xbar <- c(mT_est[i], mC_est[i])
       m0_est[i] <- as.numeric(t(one) %*% Sigma_inv %*% xbar) / denom
     }
   }
+
+  # Since the f1 process should be predictable we add an initial mT and mC value
+  mT_est  <- c(m_init, mT_est)
+  mC_est  <- c(m_init, mC_est)
 
   # Calculate the e-process
   for(i in burnin:N){

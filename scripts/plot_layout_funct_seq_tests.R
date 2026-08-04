@@ -35,7 +35,8 @@ combined_plot <- (p1_edit | p2_edit) +
     guides = "collect"
   ) &
   theme(
-    legend.position = "bottom"
+    legend.position = "none",
+
   )
 
 return(combined_plot)

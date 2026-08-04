@@ -68,7 +68,7 @@ get_e_vs_p_power <- function(
 
   true_mean_data <- do.call(rbind, lapply(true_means, function(true_mean_val) {
     cbind(
-      variable = "p",
+      variable = "m_0",
       x = true_mean_val,
       e_p_vals(n = n, B = B, alpha = alpha, true_mean = true_mean_val, var = true_mean, p = p)
     )

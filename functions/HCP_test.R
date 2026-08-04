@@ -69,53 +69,84 @@ if(Example){
 }
 
 # Plot process
-plot_process = FALSE
+plot_process <- FALSE
+
 if(plot_process){
-  # Parameters
+
   set.seed(29034)
+
+  # Parameters
   m_0 <- 0.5
   c <- 1 / 2
   N <- 300
   theta <- 0.8
   alpha <- 0.05
   m_1 <- 0.6
+  num_rep <- 100
 
   simulate_path <- function(m_true) {
     X <- rbinom(N, 1, m_true)
     HCP(m_0 = m_0, c = c, X = X, theta = theta, alpha = alpha)
   }
 
-  HCP_mat <- replicate(10, simulate_path(m_true = m_1))
+  # Alternative paths
+  HCP_alt <- replicate(num_rep, simulate_path(m_true = m_1))
 
   df_alt <- data.frame(
-    time = rep(1:N, 10),
-    path = rep(1:10, each = N),
-    HCP = as.vector(HCP_mat),
+    time = rep(1:N, num_rep),
+    path = rep(1:num_rep, each = N),
+    HCP = as.vector(HCP_alt),
     scenario = "Alternative (m_true ≠ m_0)"
   )
 
-  HCP_mat <- replicate(10, simulate_path(m_true = m_0))
+  # Null paths
+  HCP_null <- replicate(num_rep, simulate_path(m_true = m_0))
+
   df_null <- data.frame(
-    time = rep(1:N, 10),
-    path = rep(1:10, each = N),
-    HCP = as.vector(HCP_mat),
+    time = rep(1:N, num_rep),
+    path = rep(1:num_rep, each = N),
+    HCP = as.vector(HCP_null),
     scenario = "Null (m_true = m_0)"
   )
 
   df <- rbind(df_alt, df_null)
 
-  p1 <- ggplot(df, aes(time, HCP, group = path)) +
-    geom_line(alpha = 0.4) +
-    geom_hline(yintercept = 1 / alpha,
-               colour = "firebrick",
-               linetype = 2) +
-    #geom_hline(yintercept = alpha,
-    #           colour = "red",
-    #           linetype = 2) +
+  # Average process
+  df_avg <- rbind(
+    data.frame(
+      time = 1:N,
+      HCP = rowMeans(HCP_alt),
+      scenario = "Alternative (m_true ≠ m_0)"
+    ),
+    data.frame(
+      time = 1:N,
+      HCP = rowMeans(HCP_null),
+      scenario = "Null (m_true = m_0)"
+    )
+  )
+
+  # Plot
+  p1 <- ggplot(df, aes(time, HCP)) +
+    geom_line(
+      aes(group = path),
+      alpha = 0.15,
+      colour = "steelblue"
+    ) +
+    geom_line(
+      data = df_avg,
+      aes(time, HCP, group = scenario),
+      colour = "steelblue",
+      linewidth = 1.2
+    ) +
+    geom_hline(
+      yintercept = 1 / alpha,
+      colour = "firebrick",
+      linetype = 2
+    ) +
     scale_y_log10() +
     theme_minimal() +
     facet_wrap(~ scenario, ncol = 2)
+
   p1
 }
-
 

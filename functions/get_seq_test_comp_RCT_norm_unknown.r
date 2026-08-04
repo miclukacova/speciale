@@ -8,21 +8,22 @@ if(FALSE){
   source("~/Desktop/Uni/Speciale/speciale/functions/UIE_test.R")
 }
 
-get_seq_test_comp_RCT_norm <- function(B,
-                                       N,
-                                       Sigma,
-                                       side,
-                                       burnin,
-                                       m_init,
-                                       m,
-                                       c,
-                                       theta,
-                                       alpha,
-                                       gamma,
-                                       n_looks) {
+get_seq_test_comp_RCT_norm_unknown <- function(B,
+                                               N,
+                                               Sigma,
+                                               side,
+                                               burnin,
+                                               m_init,
+                                               m,
+                                               c,
+                                               theta,
+                                               alpha,
+                                               gamma,
+                                               n_looks,
+                                               sample_patient) {
 
   # Parameters
-  m_t_true_grid <- seq(0, 1, by = 0.05)
+  m_t_true_grid <- seq(0, 1, by = 0.075)
 
   # GST
   alphas <- rpact::getDesignGroupSequential(kMax = n_looks,
@@ -31,12 +32,6 @@ get_seq_test_comp_RCT_norm <- function(B,
                                             typeOfDesign = "OF")$criticalValues
 
   sigmaGS <- sqrt(Sigma[1,1] + Sigma[2,2] - 2*Sigma[1,2])
-
-  # Data sampling function
-  sample_patient <- function(N, m) {
-    X <- MASS::mvrnorm(n = N, mu = m, Sigma = Sigma)
-    X
-  }
 
   # -----------------------------------------------------------
   # UIE
@@ -60,7 +55,7 @@ get_seq_test_comp_RCT_norm <- function(B,
   # If sigma is unknown, we need an alternative approach to calculate Q_n,
   # we follow the approach outlined in Holmes section 11
 
-  # In this case we use the t-test statistic, and use that it follows a normal distribution
+  # In this case we use the t-test statistic, and use that it follows a t-distribution
   z_agN <- qt(p = 1 - alpha * gamma / side, df = N - 1)
 
   # We cannot calculate Q_n analytically as we do not have the null distribution, we have to sample from
@@ -115,10 +110,10 @@ get_seq_test_comp_RCT_norm <- function(B,
         UIE_ess <- 0
         GS_ess  <- 0
 
-        bigX <- sample_patient(N * B, mu_true)
+        bigX <- sample_patient(N * B, mu_true, Sigma)
 
         for(b in seq_len(B)) {
-
+            #print(b)
             # Data
             X <- bigX[(N * (b - 1) + 1):(b * N),]
             D <- X[, 1] - X[, 2]
@@ -137,7 +132,7 @@ get_seq_test_comp_RCT_norm <- function(B,
             out <- run_HW_test(
               N = N,
               X = D,
-              calc_q_n = calc_q_n,
+              calc_q_n = NULL,
               sample_data_null = sample_data_null,
               gamma = gamma,
               quanti = z_ag,
@@ -238,7 +233,6 @@ get_seq_test_comp_RCT_norm <- function(B,
   p2 <- ggplot(power_df,
                aes(m_t_true, Power, colour = Method)) +
     geom_line() +
-    facet_wrap(~Design, scales = "free_y") +
     theme_minimal()+
     geom_hline(aes(yintercept = alpha), linetype = 2)+
     labs(x = expression(m[T]))+
@@ -252,7 +246,7 @@ get_seq_test_comp_RCT_norm <- function(B,
                                   "UIE" = "UIE-test"))
 
   # ESS plot
-  ESS_df <- bind_rows(res, res1) |>
+  ESS_df <- res |>
     pivot_longer(
       cols = c(HCP_ESS,
                HW_ESS,
@@ -266,7 +260,6 @@ get_seq_test_comp_RCT_norm <- function(B,
   p3 <- ggplot(ESS_df,
                aes(m_t_true, ESS, colour = Method)) +
     geom_line() +
-    facet_wrap(~Design, scales = "free_y") +
     theme_minimal()+
     labs(x = expression(m[T])) +
     scale_color_manual(values = c("GS" = "darkgreen",
@@ -278,5 +271,5 @@ get_seq_test_comp_RCT_norm <- function(B,
                                   "HW" = "HW-test",
                                   "UIE" = "UIE-test"))
 
-  return(list(df = df, df1 = df1, p2 = p2, p3 = p3))
+  return(list(df = df, p2 = p2, p3 = p3))
 }

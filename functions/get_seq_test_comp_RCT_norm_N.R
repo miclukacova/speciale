@@ -67,12 +67,12 @@ get_seq_test_comp_RCT_norm_N <- function(B,
   sigma_D_N <- sqrt(1 / N_grid * (Sigma[1,1] + Sigma[2,2] - 2 * Sigma[1,2]))
   z_agN <- qnorm(p = 1 - alpha * gamma / side, mean = 0, sd = sigma_D_N)
   N_max <- max(N_grid)
-  sigmas_lookup <- sqrt(1 / N_max ^ 2 * (N_max - 1:N_max) * (Sigma[1,1] + Sigma[2,2] - 2 * Sigma[1,2]))
+  sigmas_lookup <- sapply(N_grid, function(N) sqrt(1 / N ^ 2 * (N - 1:N) * (Sigma[1,1] + Sigma[2,2] - 2 * Sigma[1,2])))
 
   calc_q_n <- function(X, N, z_ag) {
-
     meanss <- 1 / N * cumsum(X)
-    1 - pnorm(z_ag, meanss, sigmas_lookup[1:N]) + pnorm(- z_ag, meanss, sigmas_lookup[1:N])
+    sigmass <- sigmas_lookup[[which(N == N_grid)]]
+    1 - pnorm(z_ag, meanss, sigmass) + pnorm(- z_ag, meanss, sigmass)
   }
 
   sample_data_null <- NULL
@@ -104,6 +104,9 @@ get_seq_test_comp_RCT_norm_N <- function(B,
       function(g) {
         print(g)
         N <- N_grid[g]
+
+        cat("m_T =", m_T,
+            " N =", N, "\n")
 
         HCP_rej <- 0
         HW_rej  <- 0

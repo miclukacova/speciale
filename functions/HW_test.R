@@ -24,15 +24,6 @@ run_HW_test <- function(N,
         B = B
       )
       Q_n[i] <- mean(boot_data >= quanti)
-
-      #boot_data <- numeric(B)
-      #boot_data <- numeric(B)
-      #for(b in seq_len(B))
-      #  boot_data[b] <- sample_data_null(
-      #    N = N - i,
-      #    X = X[1:i]
-      #  )
-      #Q_n[i] <- mean(boot_data >= quanti)
       i <- i + 1
     }
 
@@ -94,7 +85,7 @@ if(plot_process){
   alpha <- 0.05
   gamma <- 0.9
   N <- 200
-  n <- 8
+  n <- 100
 
   # Data sampling function, quantile, function to calculate Q_n
   z_ag <- qbinom(p = 1 - (alpha * gamma), size = N, prob = m_0)
@@ -133,14 +124,46 @@ if(plot_process){
   )
 
   df <- rbind(df_alt, df_null)
-  df <- df[df$Q_n != 0,]
 
-  p1 <- ggplot(df, aes(time, Q_n, group = path)) +
-    geom_line(alpha = 0.4) +
-    geom_hline(yintercept = gamma,
-               colour = "firebrick",
-               linetype = 2) +
+  # Average processes
+  df_avg <- df %>%
+    group_by(time, scenario) %>%
+    summarise(
+      Q_n = mean(Q_n),
+      .groups = "drop"
+    )
+
+  df <- df %>% filter(Q_n != 0)
+
+  p1 <- ggplot(df, aes(time, Q_n)) +
+    geom_line(
+      aes(group = path),
+      alpha = 0.15,
+      color = "steelblue"
+    ) +
+    geom_line(
+      data = df_avg,
+      aes(time, Q_n, group = scenario),
+      colour = "steelblue",
+      linewidth = 1.2
+    ) +
+    geom_hline(
+      yintercept = gamma,
+      colour = "firebrick",
+      linetype = 2
+    ) +
     scale_y_log10(limits = c(10^(-6), 1)) +
+    labs(
+      x = "n",
+      y = expression(Q[n])
+    ) +
     theme_minimal() +
+    theme(
+      plot.title = element_text(size = 18, face = "bold"),
+      plot.subtitle = element_text(size = 14),
+      axis.title = element_text(size = 14),
+      axis.text = element_text(size = 12),
+      strip.text = element_text(size = 14, face = "bold")
+    ) +
     facet_wrap(~ scenario, ncol = 2)
 }

@@ -1,4 +1,4 @@
-get_e_vs_p_power_plot <- function(data){
+get_e_vs_p_power_plot <- function(data, alpha){
 
   #Making dataframe suited to plot
   data_long <- pivot_longer(
@@ -20,9 +20,10 @@ get_e_vs_p_power_plot <- function(data){
       legend.title = element_text(size = 8),
       legend.text = element_text(size = 7),
       axis.title.y = element_text(size = 8),
-    )
+    )+
+    geom_hline(yintercept = alpha, linetype = 2)
 
-    #ggsave(here::here("plots/e_vs_p_power_plot.pdf"), plot = plot, width = 6.2, height = 2.5)
+    ggsave("plots/e_vs_p_power_plot.pdf", plot = plot, width = 6.2, height = 2.5)
 
     return(plot)
 

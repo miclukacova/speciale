@@ -84,7 +84,7 @@ list(
                                     loss = loss_bin,
                                     alg = lm_alg)),
 
-  # TO DO: fix this
+  # BB test plot
   tar_target(
     name = rina_bb_test_plot,
     command = get_rina_bb_test_plot(rina_bb_test_data,
@@ -111,7 +111,8 @@ list(
   # Plot for e-variable and p-variable comparision: used in the motivational example
   tar_target(
     name = e_vs_p_power_plot,
-    command = get_e_vs_p_power_plot(e_vs_p_power_data)),
+    command = get_e_vs_p_power_plot(e_vs_p_power_data,
+                                    alpha = alpha)),
 
   # Neyman-Pearson test compared to the SPRT and the GS (in the appendix)
   tar_target(
@@ -134,7 +135,6 @@ list(
     name = seq_test_comp_RCT_p_t,
     command = get_seq_test_comp_RCT_p_t(B = B,
                                         N = 100,
-                                        N1 = 200,
                                         p_c = 0.3,
                                         m_0 = 1 / 2,
                                         c = 3 / 4,
@@ -181,7 +181,6 @@ list(
                                          N1 = 200,
                                          Sigma = matrix(c(1,0,0,1), ncol = 2),
                                          side = 2,
-                                         sigmaUnknown = FALSE,
                                          burnin = 1,
                                          m_init = 0.3,
                                          m = 0.3,
@@ -197,7 +196,6 @@ list(
     command = get_seq_test_comp_RCT_norm_N(B = 10^4,
                                            Sigma = matrix(c(1,0,0,1), ncol = 2),
                                            side = 2,
-                                           sigmaUnknown = FALSE,
                                            burnin = 1,
                                            m_init = 0.3,
                                            m = 0.3,
@@ -211,23 +209,107 @@ list(
   # Unknown variance
   ## Function outputs power and ESS comparisons as function of M_T
   tar_target(
-    name = seq_test_comp_RCT_norm_unknown_sigma,
-    command = get_seq_test_comp_RCT_norm(B = 200,
-                                         N = 100,
-                                         N1 = 200,
-                                         Sigma = matrix(c(1,0.4,0.4,2), ncol = 2),
-                                         side = 2,
-                                         sigmaUnknown = TRUE,
-                                         burnin = 10,
-                                         m_init = 0.3,
-                                         m = 0.3,
-                                         c = 3 / 4,
-                                         theta = 1 / 2,
-                                         alpha = alpha,
-                                         gamma = 0.9,
-                                         n_looks = 20))
+    name = seq_test_comp_RCT_norm_unknown,
+    command = get_seq_test_comp_RCT_norm_unknown(B = 2000,
+                                                 N = 150,
+                                                 Sigma = matrix(c(1,0.4,0.4,2), ncol = 2),
+                                                 side = 2,
+                                                 burnin = 10,
+                                                 m_init = 0.3,
+                                                 m = 0.3,
+                                                 c = 3 / 4,
+                                                 theta = 1 / 2,
+                                                 alpha = alpha,
+                                                 gamma = 0.9,
+                                                 n_looks = 20,
+                                                 sample_patient = sample_patient_norm)),
 
   ## Function outputs power and ESS comparisons as function of N
-  ## TO DO
+  tar_target(
+    name = seq_test_comp_RCT_norm_unknown_N,
+    command = get_seq_test_comp_RCT_norm_N_unknown(B = 500,
+                                                   Sigma = matrix(c(1,0.4,0.4,2), ncol = 2),
+                                                   side = 2,
+                                                   burnin = 10,
+                                                   m_init = 0.3,
+                                                   m = 0.3,
+                                                   c = 3 / 4,
+                                                   theta = 1 / 2,
+                                                   alpha = alpha,
+                                                   gamma = 0.9,
+                                                   n_looks = 20,
+                                                   sample_data = sample_patient_norm)),
+  #---------------------------------------------
+  # Sampling from contaminated normal
+  ## Function outputs power and ESS comparisons as function of M_T
+  tar_target(
+    name = seq_test_comp_RCT_norm_unknown_mis1,
+    command = get_seq_test_comp_RCT_norm_unknown(B = 100,
+                                                 N = 150,
+                                                 Sigma = matrix(c(1,0.4,0.4,2), ncol = 2),
+                                                 side = 2,
+                                                 burnin = 10,
+                                                 m_init = 0.3,
+                                                 m = 0.3,
+                                                 c = 3 / 4,
+                                                 theta = 1 / 2,
+                                                 alpha = alpha,
+                                                 gamma = 0.9,
+                                                 n_looks = 20,
+                                                 sample_patient = sample_patient_contaminated)),
+
+  ## Function outputs power and ESS comparisons as function of N
+  tar_target(
+    name = seq_test_comp_RCT_norm_unknown_N_mis1,
+    command = get_seq_test_comp_RCT_norm_N_unknown(B = 100,
+                                                   Sigma = matrix(c(1,0.4,0.4,2), ncol = 2),
+                                                   side = 2,
+                                                   burnin = 10,
+                                                   m_init = 0.3,
+                                                   m = 0.3,
+                                                   c = 3 / 4,
+                                                   theta = 1 / 2,
+                                                   alpha = alpha,
+                                                   gamma = 0.9,
+                                                   n_looks = 20,
+                                                   sample_patient = sample_patient_contaminated)),
+
+  #---------------------------------------------
+  # Sampling from log normal
+  ## Function outputs power and ESS comparisons as function of M_T
+  tar_target(
+    name = seq_test_comp_RCT_norm_unknown_mis2,
+    command = get_seq_test_comp_RCT_norm_unknown(B = 1000,
+                                                 N = 150,
+                                                 Sigma = matrix(c(1,0.4,0.4,2), ncol = 2),
+                                                 side = 2,
+                                                 burnin = 10,
+                                                 m_init = 0.3,
+                                                 m = 0.3,
+                                                 c = 3 / 4,
+                                                 theta = 1 / 2,
+                                                 alpha = alpha,
+                                                 gamma = 0.9,
+                                                 n_looks = 20,
+                                                 sample_patient = sample_patient_lognormal)),
+
+  ## Function outputs power and ESS comparisons as function of N
+  tar_target(
+    name = seq_test_comp_RCT_norm_unknown_N_mis2,
+    command = get_seq_test_comp_RCT_norm_N_unknown(B = 100,
+                                                   Sigma = matrix(c(1,0.4,0.4,2), ncol = 2),
+                                                   side = 2,
+                                                   burnin = 10,
+                                                   m_init = 0.3,
+                                                   m = 0.3,
+                                                   c = 3 / 4,
+                                                   theta = 1 / 2,
+                                                   alpha = alpha,
+                                                   gamma = 0.9,
+                                                   n_looks = 20,
+                                                   sample_patient = sample_patient_lognormal))
+
+
+
   )
 

@@ -139,7 +139,9 @@ p_power <- ggplot(
     x = expression(p[t]),
     y = "Power",
     colour = NULL
-  )
+  )+
+  scale_color_manual(values = c("GS (Soko)" = "firebrick",
+                     "GS (rpact OF)" = "steelblue"))
 
 p_power
 
@@ -171,6 +173,8 @@ p_ESS <- ggplot(
     x = expression(p[t]),
     y = "Expected Sample Size",
     colour = NULL
-  )
+  )+
+  scale_color_manual(values = c("GS (Soko)" = "firebrick",
+                                "GS (rpact OF)" = "steelblue"))
 
 p_ESS

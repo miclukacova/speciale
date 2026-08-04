@@ -5,7 +5,8 @@ get_comp_soko_eproc <- function(alpha,
                                 p_t,
                                 p_t_ms,
                                 c,
-                                theta) {
+                                theta,
+                                n_rep = 200) {
   if(FALSE) {
     library(tidyverse)
     source("~/Desktop/Uni/Speciale/speciale/functions/HCP_test.R")
@@ -141,9 +142,7 @@ get_comp_soko_eproc <- function(alpha,
   # Power curve
   #------------------------------------------------
 
-  alt_grid <- tibble(p_t = seq(0.35, 0.7, by = 0.05))
-
-  power_results <- map_dfr(alt_grid$p_t, function(p_t_alt) {
+  power_results <- map_dfr(seq(0.35, 0.7, by = 0.05), function(p_t_alt) {
 
         out <- compare_tests(p_c = p_c,
                              p_t = p_t_alt,
@@ -198,7 +197,6 @@ get_comp_soko_eproc <- function(alpha,
   # Example path under alternative
   #------------------------------------------------
 
-  n_rep = 10
   sim_one <- function(rep_id, lambda_star) {
     X <- sample_patient(N, p_t)
 
@@ -215,33 +213,52 @@ get_comp_soko_eproc <- function(alpha,
 
     bind_rows(e_path, hcp_path) |>
       mutate(rep = rep_id)
-    }
+  }
 
-    df <- bind_rows(lapply(1:n_rep, function(rep) sim_one(rep, lambda_star)))
-    df_ms <- bind_rows(lapply(1:n_rep, function(rep) sim_one(rep, lambda_star_ms)))
+  df <- bind_rows(lapply(1:n_rep, function(rep) sim_one(rep, lambda_star)))
+  df_ms <- bind_rows(lapply(1:n_rep, function(rep) sim_one(rep, lambda_star_ms)))
 
-    y_range <- range(c(df$value, df_ms$value), na.rm = TRUE)
+  y_range <- range(c(df$value, df_ms$value))
 
-    plot3 <- ggplot(df, aes(n, value, colour = process, group = interaction(process, rep))) +
-      geom_line(alpha = 0.5) +
-      geom_hline(yintercept = 1 / alpha, linetype = 2) +
-      scale_y_log10(limits = y_range) +
-      labs(x = "N", y = "Process value (log scale)")+
-      scale_colour_manual(values = c("E-process" = "steelblue",
-                                     "HCP" = "firebrick"),
-                          labels = c("E-process" = "Soko(0.45)-test",
-                                     "HCP" = "HCP"))+
-      theme_bw()
+  df_avg <- df |>
+    group_by(n, process) |>
+    summarise(avg_value = mean(value),
+              .groups = "drop")
+
+  plot3 <- ggplot(df, aes(n, value, colour = process,
+                          group = interaction(process, rep))) +
+    geom_line(alpha = 0.12, linewidth = 0.4) +
+    geom_line(data = df_avg,
+              aes(x = n, y = avg_value, colour = process),
+              linewidth = 1.3,
+              inherit.aes = FALSE) +
+    geom_hline(yintercept = 1 / alpha, linetype = 2) +
+    scale_y_log10(limits = y_range) +
+    labs(x = "N", y = "Process value (log scale)") +
+    scale_colour_manual(values = c("E-process" = "steelblue",
+                                   "HCP" = "firebrick"),
+                        labels = c("E-process" = "Soko(0.45)-test",
+                                   "HCP" = "HCP")) +
+    theme_bw()
+
+    df_ms_avg <- df_ms |>
+      group_by(n, process) |>
+      summarise(avg_value = mean(value),
+                .groups = "drop")
 
     plot4 <- ggplot(df_ms, aes(n, value, colour = process, group = interaction(process, rep))) +
-      geom_line(alpha = 0.5) +
+      geom_line(alpha = 0.12, linewidth = 0.4) +
+      geom_line(data = df_ms_avg,
+                aes(x = n, y = avg_value, colour = process),
+                linewidth = 1.5,
+                inherit.aes = FALSE) +
       geom_hline(yintercept = 1 / alpha, linetype = 2) +
       scale_y_log10(limits = y_range) +
-      labs(x = "N", y = "Process value (log scale)")+
+      labs(x = "N", y = "Process value (log scale)") +
       scale_colour_manual(values = c("E-process" = "darkgreen",
                                      "HCP" = "firebrick"),
                           labels = c("E-process" = "Soko(0.6)-test",
-                                     "HCP" = "HCP"))+
+                                     "HCP" = "HCP")) +
       theme_bw()
 
     return(list(type1_summary = type1_summary,

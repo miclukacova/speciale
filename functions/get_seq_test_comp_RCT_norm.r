@@ -71,14 +71,21 @@ get_seq_test_comp_RCT_norm <- function(B,
   # We use the mean of the D's as test statistic
   sigma_D_N <- sqrt(1 / N * (Sigma[1,1] + Sigma[2,2] - 2 * Sigma[1,2]))
   sigma_D_N1 <- sqrt(1 / N1 * (Sigma[1,1] + Sigma[2,2] - 2 * Sigma[1,2]))
+
+  sigmasN <- sqrt(1 / N ^ 2 * (N - 1:N) * (Sigma[1,1] + Sigma[2,2] - 2 * Sigma[1,2]))
+  sigmasN1 <- sqrt(1 / N1 ^ 2 * (N1 - 1:N1) * (Sigma[1,1] + Sigma[2,2] - 2 * Sigma[1,2]))
+
   z_agN <- qnorm(p = 1 - alpha * gamma / side, mean = 0, sd = sigma_D_N)
   z_agN1 <- qnorm(p = 1 - alpha * gamma / side, mean = 0, sd = sigma_D_N1)
 
-
-  sigmas <- sqrt(1 / N ^ 2 * (N - 1:N) * (Sigma[1,1] + Sigma[2,2] - 2 * Sigma[1,2]))
   calc_q_n <- function(X, N, z_ag) {
     meanss <- 1 / N * cumsum(X)
-    1 - pnorm(z_ag, meanss, sigmas) + pnorm(- z_ag, meanss, sigmas)
+    1 - pnorm(z_ag, meanss, sigmasN) + pnorm(- z_ag, meanss, sigmasN)
+  }
+
+  calc_q_n1 <- function(X, N, z_ag) {
+    meanss <- 1 / N1 * cumsum(X)
+    1 - pnorm(z_ag, meanss, sigmasN1) + pnorm(- z_ag, meanss, sigmasN1)
   }
 
   sample_data_null <- NULL
@@ -87,7 +94,7 @@ get_seq_test_comp_RCT_norm <- function(B,
   ## Comparisons
   #-------------------------------------------------------------------------------
 
-  compare_tests <- function(N, z_ag) {
+  compare_tests <- function(N, z_ag, calc_q_n_fun) {
 
     results <- future.apply::future_lapply(
       seq_along(m_t_true_grid),
@@ -127,7 +134,7 @@ get_seq_test_comp_RCT_norm <- function(B,
             out <- run_HW_test(
               N = N,
               X = D,
-              calc_q_n = calc_q_n,
+              calc_q_n = calc_q_n_fun,
               sample_data_null = sample_data_null,
               gamma = gamma,
               quanti = z_ag,
@@ -194,8 +201,8 @@ get_seq_test_comp_RCT_norm <- function(B,
     workers = parallel::detectCores() - 1
   )
 
-  res <- compare_tests(N = N, z_ag = z_agN)
-  res1 <- compare_tests(N = N1, z_ag = z_agN1)
+  res <- compare_tests(N = N, z_ag = z_agN, calc_q_n_fun = calc_q_n)
+  res1 <- compare_tests(N = N1, z_ag = z_agN1, calc_q_n_fun = calc_q_n1)
   df <- res
   df1 <- res1
 

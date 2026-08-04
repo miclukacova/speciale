@@ -135,20 +135,16 @@ get_seq_test_comp_RCT_p_t <- function(B,
   #-------------------------------------------------------------------------------
 
   compare_tests <- function(N, z_ag) {
-    results <- vector("list", length(p_t_true_grid))
-    for (g in seq_along(p_t_true_grid)) {
-      print(g)
-      # True parameter
-      p_t_true <- p_t_true_grid[g]
-      sample_data <- function(N) sample_patient(N, p_t_true)
 
-      # Storage
-      HCP_res <- matrix(NA_real_, nrow = B, ncol = 2)
-      HW_res <- matrix(NA_real_, nrow = B, ncol = 2)
-      GS_res <- matrix(NA_real_, nrow = B, ncol = 2)
-      SPRT_0.45_res <- matrix(NA_real_, nrow = B, ncol = 2)
-      SPRT_0.6_res <- matrix(NA_real_, nrow = B, ncol = 2)
-      SPRT_adap_res <- matrix(NA_real_, nrow = B, ncol = 2)
+    results <- vector("list", length(p_t_true_grid))
+
+    for (g in seq_along(p_t_true_grid)) {
+
+      print(g)
+
+      p_t_true <- p_t_true_grid[g]
+
+      sample_data <- function(N) sample_patient(N, p_t_true)
 
       # Simulations
       sim_results <- future_lapply(
@@ -157,101 +153,179 @@ get_seq_test_comp_RCT_p_t <- function(B,
 
           X <- sample_data(N)
 
-          # HCP
-          HCP <- run_HCP_test(m_0 = m_0, c = c, X = X, theta = theta, alpha = alpha)
+          HCP <- run_HCP_test(
+            m_0 = m_0, c = c, X = X,
+            theta = theta, alpha = alpha
+          )
 
-          # HW
-          HW <- run_HW_test(N = N, X = X, calc_q_n = calc_q_n, gamma = gamma, quanti = z_ag)
+          HW <- run_HW_test(
+            N = N, X = X,
+            calc_q_n = calc_q_n,
+            gamma = gamma,
+            quanti = z_ag
+          )
 
-          # SPRTs
-          SPRT_0.45 <- run_sprt_test(N, X = X, f0 = f0, f1 = f1_list[[1]],
-                                     gamma0 = alpha / (1 - alpha), gamma1 = (1 - alpha) / alpha)
+          SPRT_0.45 <- run_sprt_test(
+            N, X = X,
+            f0 = f0,
+            f1 = f1_list[[1]],
+            gamma0 = alpha/(1-alpha),
+            gamma1 = (1-alpha)/alpha
+          )
 
-          SPRT_0.6 <- run_sprt_test(N, X = X, f0 = f0, f1 = f1_list[[2]],
-                                    gamma0 = alpha / (1 - alpha), gamma1 = (1 - alpha) / alpha)
+          SPRT_0.6 <- run_sprt_test(
+            N, X = X,
+            f0 = f0,
+            f1 = f1_list[[2]],
+            gamma0 = alpha/(1-alpha),
+            gamma1 = (1-alpha)/alpha
+          )
 
-          SPRT_adap <- run_sprt_test(N, X = X, f0 = f0, f1 = f1_adap, gamma0 = 0,
-                                     gamma1 = (1 - alpha) / alpha)
+          SPRT_adap <- run_sprt_test(
+            N, X = X,
+            f0 = f0,
+            f1 = f1_adap,
+            gamma0 = 0,
+            gamma1 = (1-alpha)/alpha
+          )
 
-          # GS
-          GS <- gs_run(Nmax = N, alphas = alphas, n_looks = n_looks, X = X, m_0 = m_0,
-                       sigmaUnknown = FALSE, sigma = sigma)
+          GS <- gs_run(
+            Nmax = N,
+            alphas = alphas,
+            n_looks = n_looks,
+            X = X,
+            m_0 = m_0,
+            sigmaUnknown = FALSE,
+            sigma = sigma
+          )
 
-          list(HCP = HCP, HW = HW, SPRT_0.45 = SPRT_0.45, SPRT_0.6 = SPRT_0.6,
-               SPRT_adap = SPRT_adap, GS = GS)
+
+          list(
+            HCP = HCP,
+            HW = HW,
+            GS = GS,
+            SPRT_0.45 = SPRT_0.45,
+            SPRT_0.6 = SPRT_0.6,
+            SPRT_adap = SPRT_adap
+          )
         },
         future.seed = TRUE
       )
 
-      # ----------------------------
-      # Collect simulation results
-      # ----------------------------
 
-      HCP_res <- do.call(
-        rbind,
-        lapply(sim_results, `[[`, "HCP")
-      )
-      colnames(HCP_res) <- c("Reject", "ESS")
+      # Convert simulation output into matrices
+      get_results <- function(name) {
 
-      HW_res <- do.call(
-        rbind,
-        lapply(sim_results, `[[`, "HW")
-      )
-      colnames(HW_res) <- c("Reject", "ESS")
+        x <- do.call(
+          rbind,
+          lapply(sim_results, `[[`, name)
+        )
 
-      GS_res <- do.call(
-        rbind,
-        lapply(sim_results, `[[`, "GS")
-      )
-      colnames(GS_res) <- c("Reject", "ESS")
+        colnames(x) <- c("Reject", "ESS")
 
-      # SPRT results
-      SPRT_0.45_res <- do.call(
-        rbind,
-        lapply(sim_results, `[[`, "SPRT_0.45")
-      )
-      colnames(SPRT_0.45_res) <- c("Reject", "ESS")
+        x
+      }
 
-      SPRT_0.6_res <- do.call(
-        rbind,
-        lapply(sim_results, `[[`, "SPRT_0.6")
-      )
-      colnames(SPRT_0.6_res) <- c("Reject", "ESS")
 
-      SPRT_adap_res <- do.call(
-        rbind,
-        lapply(sim_results, `[[`, "SPRT_adap")
-      )
-      colnames(SPRT_adap_res) <- c("Reject", "ESS")
+      HCP_res <- get_results("HCP")
+      HW_res <- get_results("HW")
+      GS_res <- get_results("GS")
+      SPRT_0.45_res <- get_results("SPRT_0.45")
+      SPRT_0.6_res <- get_results("SPRT_0.6")
+      SPRT_adap_res <- get_results("SPRT_adap")
 
-      # ----------------------------
-      # Summaries
-      # ----------------------------
+
+      # Helper function for power
+      power_summary <- function(x) {
+
+        p <- mean(x[, "Reject"])
+
+        se <- sqrt(
+          p * (1-p) / B
+        )
+
+        c(
+          power = p,
+          lower = max(0, p - 1.96*se),
+          upper = min(1, p + 1.96*se)
+        )
+      }
+
+
+      # Helper function for ESS
+      ESS_summary <- function(x) {
+
+        c(
+          ESS = mean(x[, "ESS"]),
+          lower = quantile(x[, "ESS"], 0.025),
+          upper = quantile(x[, "ESS"], 0.975)
+        )
+      }
+
 
       out <- list(
         p_t_true = p_t_true,
 
-        HCP_power = mean(HCP_res[, "Reject"]),
-        HCP_ESS   = mean(HCP_res[, "ESS"]),
 
-        HW_power = mean(HW_res[, "Reject"]),
-        HW_ESS   = mean(HW_res[, "ESS"]),
+        # Power
+        HCP_power = power_summary(HCP_res)[1],
+        HCP_power_lower = power_summary(HCP_res)[2],
+        HCP_power_upper = power_summary(HCP_res)[3],
 
-        GS_power = mean(GS_res[, "Reject"]),
-        GS_ESS   = mean(GS_res[, "ESS"]),
+        HW_power = power_summary(HW_res)[1],
+        HW_power_lower = power_summary(HW_res)[2],
+        HW_power_upper = power_summary(HW_res)[3],
 
-        SPRT_0.45_power = mean(SPRT_0.45_res[, "Reject"]),
-        SPRT_0.45_ESS   = mean(SPRT_0.45_res[, "ESS"]),
+        GS_power = power_summary(GS_res)[1],
+        GS_power_lower = power_summary(GS_res)[2],
+        GS_power_upper = power_summary(GS_res)[3],
 
-        SPRT_0.6_power = mean(SPRT_0.6_res[, "Reject"]),
-        SPRT_0.6_ESS   = mean(SPRT_0.6_res[, "ESS"]),
 
-        SPRT_adap_power = mean(SPRT_adap_res[, "Reject"]),
-        SPRT_adap_ESS   = mean(SPRT_adap_res[, "ESS"])
+        SPRT_0.45_power = power_summary(SPRT_0.45_res)[1],
+        SPRT_0.45_power_lower = power_summary(SPRT_0.45_res)[2],
+        SPRT_0.45_power_upper = power_summary(SPRT_0.45_res)[3],
+
+        SPRT_0.6_power = power_summary(SPRT_0.6_res)[1],
+        SPRT_0.6_power_lower = power_summary(SPRT_0.6_res)[2],
+        SPRT_0.6_power_upper = power_summary(SPRT_0.6_res)[3],
+
+        SPRT_adap_power = power_summary(SPRT_adap_res)[1],
+        SPRT_adap_power_lower = power_summary(SPRT_adap_res)[2],
+        SPRT_adap_power_upper = power_summary(SPRT_adap_res)[3],
+
+
+
+        # ESS
+        HCP_ESS = ESS_summary(HCP_res)[1],
+        HCP_ESS_lower = ESS_summary(HCP_res)[2],
+        HCP_ESS_upper = ESS_summary(HCP_res)[3],
+
+        HW_ESS = ESS_summary(HW_res)[1],
+        HW_ESS_lower = ESS_summary(HW_res)[2],
+        HW_ESS_upper = ESS_summary(HW_res)[3],
+
+        GS_ESS = ESS_summary(GS_res)[1],
+        GS_ESS_lower = ESS_summary(GS_res)[2],
+        GS_ESS_upper = ESS_summary(GS_res)[3],
+
+        SPRT_0.45_ESS = ESS_summary(SPRT_0.45_res)[1],
+        SPRT_0.45_ESS_lower = ESS_summary(SPRT_0.45_res)[2],
+        SPRT_0.45_ESS_upper = ESS_summary(SPRT_0.45_res)[3],
+
+        SPRT_0.6_ESS = ESS_summary(SPRT_0.6_res)[1],
+        SPRT_0.6_ESS_lower = ESS_summary(SPRT_0.6_res)[2],
+        SPRT_0.6_ESS_upper = ESS_summary(SPRT_0.6_res)[3],
+
+        SPRT_adap_ESS = ESS_summary(SPRT_adap_res)[1],
+        SPRT_adap_ESS_lower = ESS_summary(SPRT_adap_res)[2],
+        SPRT_adap_ESS_upper = ESS_summary(SPRT_adap_res)[3]
       )
 
+
       results[[g]] <- tibble::as_tibble(out)
+
     }
+
 
     dplyr::bind_rows(results)
   }
@@ -268,31 +342,59 @@ get_seq_test_comp_RCT_p_t <- function(B,
   df <- res
 
   # Power plot
-  power_df <- res |> pivot_longer(cols = c(ends_with("_power")),
+  power_bounds <- res |>
+    pivot_longer(
+      cols = matches("_power_(lower|upper)$"),
+      names_to = c("Method", "bound"),
+      names_pattern = "(.*)_power_(lower|upper)",
+      values_to = "value"
+    ) |>
+    mutate(Method = paste0(Method, "_power")) |>
+    pivot_wider(
+      names_from = bound,
+      values_from = value
+    )
+
+  power_df <- res |>
+    pivot_longer(
+      cols = matches("_power$"),
       names_to = "Method",
-      values_to = "Power")
+      values_to = "Power"
+    ) |>
+    left_join(
+      power_bounds,
+      by = c("p_t_true", "Method")
+    )
+
 
   p2 <- ggplot(power_df,
-               aes(p_t_true, Power, colour = Method)) +
-    geom_line() +
+              aes(p_t_true, Power,
+                  colour = Method,
+                  fill = Method)) +
+
+    geom_ribbon(
+      aes(ymin = lower, ymax = upper),
+      alpha = 0.15,
+      colour = NA
+    ) +
+
+    geom_line(size = 1) +
+
     theme_minimal() +
-    labs(x = expression(p[t])) +
-    geom_hline(aes(yintercept = alpha), linetype = 2) +
-    scale_color_manual(values = c("GS_power" = "darkgreen",
-                                  "HCP_power" = "firebrick",
-                                  "HW_power" = "steelblue",
-                                  "SPRT_0.45_power" = "orange",
-                                  "SPRT_0.6_power" = "goldenrod",
-                                  "SPRT_adap_power" = "#009E73"),
-                       labels = c("GS_power" = "GS-test",
-                                  "HCP_power" = "HCP-test",
-                                  "HW_power" = "HW-test",
-                                  "SPRT_0.45_power" = "SPRT(0.45)",
-                                  "SPRT_0.6_power" = "SPRT(0.6)",
-                                  "SPRT_adap_power" = "SPRT(adap)"))
+
+    labs(
+      x = expression(p[t]),
+      y = "Power"
+    ) +
+
+    geom_hline(
+      yintercept = alpha,
+      linetype = 2
+    )
 
   # ESS plot
-  ESS_df <- res |> pivot_longer(cols = c(ends_with("_ESS")),names_to = "Method",values_to = "ESS")
+  ESS_df <- res |> pivot_longer(cols = c(ends_with("_ESS")),
+                                names_to = "Method",values_to = "ESS")
 
   p3 <- ggplot(ESS_df, aes(p_t_true, ESS, colour = Method)) +
     geom_line() +
@@ -310,5 +412,6 @@ get_seq_test_comp_RCT_p_t <- function(B,
                                   "SPRT_0.45_ESS" = "SPRT(0.45)",
                                   "SPRT_0.6_ESS" = "SPRT(0.6)",
                                   "SPRT_adap_ESS" = "SPRT(adap)"))
+
   return(list(df = df, p2 = p2, p3 = p3))
 }
