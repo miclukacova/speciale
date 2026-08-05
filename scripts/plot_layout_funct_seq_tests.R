@@ -48,3 +48,55 @@ plot_layout_seq_test_results(seq_test_comp_RCT_p_t$p2, seq_test_comp_RCT_p_t$p3)
 plot_layout_seq_test_results(seq_test_comp_RCT_N$p_power, seq_test_comp_RCT_N$p_ESS)
 plot_layout_seq_test_results(seq_test_comp_RCT_norm$p2, seq_test_comp_RCT_norm$p3)
 plot_layout_seq_test_results(seq_test_comp_RCT_norm_N$p_power, seq_test_comp_RCT_norm_N$p_ESS)
+
+#Wrapper der ikke kombinerer legends
+library(grid)
+
+plot_layout_keep_legend <- function(p1, p2) {
+
+  common_theme <- theme_bw(base_size = 11) +
+    theme(
+      axis.title = element_text(size = 10),
+      axis.text = element_text(size = 8),
+      legend.title = element_text(size = 12),
+      legend.text = element_text(size = 10),
+
+      strip.text = element_text(size = 10),
+      strip.background = element_rect(fill = "white"),
+
+      panel.spacing.x = unit(0.7, "lines"),
+      panel.background = element_rect(fill = "white"),
+
+      legend.position = "bottom",
+      legend.box = "horizontal",
+      legend.key.width = unit(1.5, "cm"),
+
+      plot.margin = margin(5, 5, 5, 5)
+    )
+
+
+  p1_edit <- p1 +
+    common_theme +
+    theme(
+      axis.text.x = element_text(
+        angle = 35,
+        hjust = 1
+      )
+    )
+
+  p2_edit <- p2 + common_theme
+
+  combined_plot <- (p1_edit | p2_edit) +
+    plot_layout(
+      widths = c(1, 1),
+      guides = "keep"
+    )
+
+  return(combined_plot)
+}
+
+#Plots skal komme fra get_SD_ESS_bern og så seq_test
+
+plot_layout_keep_legend(p1,get_ESS_vs_power(seq_test_comp_RCT_N))
+plot_layout_keep_legend(p1,get_ESS_vs_power(seq_test_comp_RCT_norm_N, gaussian = TRUE))
+

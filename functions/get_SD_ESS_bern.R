@@ -7,6 +7,7 @@ get_SD_ESS_bern <- function(){
     library(tidyverse)
     library(dplyr)
     library(ggplot2)
+    library(ggpattern)
   }
 
   #==================================================
@@ -119,14 +120,14 @@ get_SD_ESS_bern <- function(){
   SD_ESS <- bind_rows(
 
     tibble(
-      p_t = "p_t = 0.45",
+      p_t = "0.45",
       method = c(
-        "GS_ESS",
-        "HCP_ESS",
-        "HW_ESS",
-        "SPRT_0.45_ESS",
-        "SPRT_0.6_ESS",
-        "SPRT_adap_ESS"
+        "GS",
+        "HCP",
+        "HW",
+        "SPRT_0.45",
+        "SPRT_0.6",
+        "SPRT_adap"
       ),
       SD = c(
         sd(res_045$GS[,2]),
@@ -140,14 +141,14 @@ get_SD_ESS_bern <- function(){
 
 
     tibble(
-      p_t = "p_t = 0.60",
+      p_t = "0.60",
       method = c(
-        "GS_ESS",
-        "HCP_ESS",
-        "HW_ESS",
-        "SPRT_0.45_ESS",
-        "SPRT_0.6_ESS",
-        "SPRT_adap_ESS"
+        "GS",
+        "HCP",
+        "HW",
+        "SPRT_0.45",
+        "SPRT_0.6",
+        "SPRT_adap"
       ),
       SD = c(
         sd(res_060$GS[,2]),
@@ -167,37 +168,64 @@ get_SD_ESS_bern <- function(){
   # Plot SD of ESS
   #==================================================
 
-  p1 <- ggplot(SD_ESS,
-         aes(x = method,
-             y = SD,
-             fill = p_t)) +
 
-    geom_col(
-      position = position_dodge(width = 0.8),
-      width = 0.7
-    ) +
-
-    scale_fill_manual(
-      values = c(
-        "p_t = 0.45" = "grey40",
-        "p_t = 0.60" = "grey75"
+  p1 <- ggplot(
+      SD_ESS,
+      aes(
+        x = method,
+        y = SD,
+        fill = method,
+        pattern = p_t
       )
     ) +
+    geom_col_pattern(
+      position = position_dodge(width = 0.8),
+      width = 0.7,
+      alpha = 0.85,
+
+      # Pattern settings
+      pattern_fill = "white",
+      pattern_colour = "white",
+      pattern_density = 0.1,
+      pattern_spacing = 0.02,
+      pattern_angle = 45
+    ) +
+
+    scale_fill_manual(values = c(
+      "GS" = "darkgreen",
+      "HCP" = "firebrick",
+      "HW" = "steelblue",
+      "SPRT_0.45" = "orange",
+      "SPRT_0.6" = "goldenrod",
+      "SPRT_adap" = "#009E73"
+    ),
+    guide = "none") +
+
+    scale_pattern_manual(values = c(
+      "0.45" = "none",
+      "0.60" = "stripe"
+    )) +
 
     labs(
       x = NULL,
       y = "Standard deviation of ESS",
-      fill = expression(p[t])
+      fill = "Test",
+      pattern = expression(p[t])
     ) +
 
     theme_bw(base_size = 14) +
 
     theme(
       axis.text.x = element_text(angle = 35, hjust = 1),
-      panel.grid.minor = element_blank()
+      panel.grid.minor = element_blank(),
+
     )
 
   return()
 
 }
+
+
+
+
 
